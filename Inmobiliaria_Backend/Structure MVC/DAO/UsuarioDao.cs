@@ -2,41 +2,40 @@
 using backend_csharpcd_inmo.Structure_MVC.Models;
 using backend_csharpcd_inmo.Structure_MVC.Utils;
 using System.Data;
+using Inmobiliaria_Backend.Services;
 
 namespace backend_csharpcd_inmo.Structure_MVC.DAO
 {
     public class UsuarioDao
     {
-        // Crear usuario
+        private readonly IPasswordService _pwd;
+
+        public UsuarioDao(IPasswordService pwd)
+        {
+            _pwd = pwd;
+        }
+
         public async Task<(bool exito, string mensaje, int? id)> CrearUsuarioAsync(Usuario usuario)
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                // Verificar DNI único
                 if (await ExisteDniAsync(usuario.Dni))
-                {
                     return (false, "El DNI ya está registrado", null);
-                }
 
-                // Verificar email único
                 if (await ExisteEmailAsync(usuario.Email))
-                {
                     return (false, "El email ya está registrado", null);
-                }
 
-                string query = @"INSERT INTO usuario 
-                    (Nombre, Dni, Email, Password, Telefono, IntentosLogin, IdEstadoUsuario, 
-                     UltimoLoginAt, CreadoAt, ActualizadoAt) 
-                    VALUES (@Nombre, @Dni, @Email, @Password, @Telefono, @IntentosLogin, @IdEstadoUsuario, 
-                            @UltimoLoginAt, @CreadoAt, @ActualizadoAt);
-                    SELECT LAST_INSERT_ID();";
+                const string query = @"
+INSERT INTO usuario 
+ (Nombre, Dni, Email, Password, Telefono, IntentosLogin, IdEstadoUsuario, UltimoLoginAt, CreadoAt, ActualizadoAt) 
+VALUES 
+ (@Nombre, @Dni, @Email, @Password, @Telefono, @IntentosLogin, @IdEstadoUsuario, @UltimoLoginAt, @CreadoAt, @ActualizadoAt);
+SELECT LAST_INSERT_ID();";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
@@ -66,14 +65,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT * FROM usuario WHERE IdUsuario = @id";
+                const string query = "SELECT * FROM usuario WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", id);
@@ -98,14 +95,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT * FROM usuario WHERE Email = @email";
+                const string query = "SELECT * FROM usuario WHERE Email = @email";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@email", email.ToLower());
@@ -130,14 +125,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT * FROM usuario WHERE Dni = @dni";
+                const string query = "SELECT * FROM usuario WHERE Dni = @dni";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@dni", dni);
@@ -157,50 +150,67 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
             }
         }
 
-        // Login
-        public async Task<(bool exito, string mensaje, Usuario? usuario)> LoginAsync(string email, string password)
+        // Login con BCrypt (servicio inyectado)
+        public async Task<(bool exito, string mensaje, Usuario? usuario, string? rol)> LoginAsync(string email, string password)
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
-                return (false, connectionResult.Mensaje, null);
-            }
+                return (false, connectionResult.Mensaje, null, null);
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT * FROM usuario WHERE Email = @email";
+                const string query = @"
+SELECT  u.*,
+        CASE
+          WHEN adm.idAdministrador IS NOT NULL THEN 'admin'
+          WHEN ag.idAgente IS NOT NULL       THEN 'agent'
+          WHEN cl.idCliente IS NOT NULL      THEN 'client'
+          ELSE 'user'
+        END AS rol
+FROM usuario u
+LEFT JOIN administrador      AS adm ON adm.idUsuario = u.idUsuario
+LEFT JOIN agenteinmobiliario AS ag  ON ag.idUsuario  = u.idUsuario
+LEFT JOIN cliente            AS cl  ON cl.idUsuario  = u.idUsuario
+WHERE u.Email = @email
+LIMIT 1;";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@email", email.ToLower());
 
                 using var reader = await cmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                if (!await reader.ReadAsync())
+                    return (false, "Usuario no encontrado", null, null);
+
+                var usuario = MapearUsuario(reader);
+                var rolOrdinal = reader.GetOrdinal("rol");
+                var rol = !reader.IsDBNull(rolOrdinal) ? reader.GetString(rolOrdinal) : "user";
+
+                if (usuario.EstaBloqueado)
+                    return (false, "Usuario bloqueado por múltiples intentos fallidos", usuario, rol);
+
+                // Verificar contra hash almacenado
+                var passwordOk = _pwd.Verify(password, usuario.Password);
+                if (!passwordOk)
+                    return (false, "Credenciales inválidas", usuario, rol);
+
+                // Rehash oportunista si aumentaste el cost
+                if (_pwd.NeedsRehash(usuario.Password))
                 {
-                    var usuario = MapearUsuario(reader);
-
-                    // Verificar si está bloqueado
-                    if (usuario.EstaBloqueado)
-                    {
-                        return (false, "Usuario bloqueado por múltiples intentos fallidos", null);
-                    }
-
-                    // Verificar password
-                    if (usuario.VerificarPassword(password))
-                    {
-                        return (true, "Login exitoso", usuario);
-                    }
-                    else
-                    {
-                        return (false, "Credenciales inválidas", usuario);
-                    }
+                    var nuevoHash = _pwd.Hash(password);
+                    reader.Close(); // cerrar antes de UPDATE en misma conexión
+                    await CambiarPasswordAsync(usuario.IdUsuario, nuevoHash);
+                }
+                else
+                {
+                    reader.Close();
                 }
 
-                return (false, "Usuario no encontrado", null);
+                return (true, "Login exitoso", usuario, rol);
             }
             catch (MySqlException ex)
             {
-                return (false, $"Error en login: {ex.Message}", null);
+                return (false, $"Error en login: {ex.Message}", null, null);
             }
         }
 
@@ -209,22 +219,21 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = @"UPDATE usuario SET 
-                    UltimoLoginAt = @ultimoLogin,
-                    IntentosLogin = 0,
-                    ActualizadoAt = @actualizadoAt
-                    WHERE IdUsuario = @id";
+                const string query = @"
+UPDATE usuario SET 
+    UltimoLoginAt = @ultimoLogin,
+    IntentosLogin = 0,
+    ActualizadoAt = @actualizadoAt
+WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", idUsuario);
-                cmd.Parameters.AddWithValue("@ultimoLogin", DateTime.UtcNow.Date);
+                cmd.Parameters.AddWithValue("@ultimoLogin", DateTime.UtcNow);
                 cmd.Parameters.AddWithValue("@actualizadoAt", DateTime.UtcNow);
 
                 await cmd.ExecuteNonQueryAsync();
@@ -241,17 +250,16 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = @"UPDATE usuario SET 
-                    IntentosLogin = IntentosLogin + 1,
-                    ActualizadoAt = @actualizadoAt
-                    WHERE IdUsuario = @id";
+                const string query = @"
+UPDATE usuario SET 
+    IntentosLogin = IntentosLogin + 1,
+    ActualizadoAt = @actualizadoAt
+WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", idUsuario);
@@ -271,14 +279,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT * FROM usuario ORDER BY CreadoAt DESC";
+                const string query = "SELECT * FROM usuario ORDER BY CreadoAt DESC";
 
                 using var cmd = new MySqlCommand(query, connection);
                 using var reader = await cmd.ExecuteReaderAsync();
@@ -303,20 +309,19 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null, 0);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string countQuery = "SELECT COUNT(*) FROM usuario";
+                const string countQuery = "SELECT COUNT(*) FROM usuario";
                 using var countCmd = new MySqlCommand(countQuery, connection);
                 int totalRegistros = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
 
-                string query = @"SELECT * FROM usuario 
-                    ORDER BY CreadoAt DESC
-                    LIMIT @limit OFFSET @offset";
+                const string query = @"
+SELECT * FROM usuario 
+ORDER BY CreadoAt DESC
+LIMIT @limit OFFSET @offset";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@limit", tamanoPagina);
@@ -343,9 +348,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
@@ -361,14 +364,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
 
                 if (bloqueados.HasValue)
                 {
-                    if (bloqueados.Value)
-                    {
-                        condiciones.Add("IntentosLogin >= 5");
-                    }
-                    else
-                    {
-                        condiciones.Add("IntentosLogin < 5");
-                    }
+                    condiciones.Add(bloqueados.Value ? "IntentosLogin >= 5" : "IntentosLogin < 5");
                 }
 
                 if (idEstado.HasValue)
@@ -377,12 +373,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                     parametros.Add(new MySqlParameter("@idEstado", idEstado.Value));
                 }
 
-                string whereClause = condiciones.Count > 0 ?
-                    "WHERE " + string.Join(" AND ", condiciones) : "";
+                string whereClause = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";
 
-                string query = $@"SELECT * FROM usuario 
-                    {whereClause}
-                    ORDER BY CreadoAt DESC";
+                string query = $@"
+SELECT * FROM usuario 
+{whereClause}
+ORDER BY CreadoAt DESC";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddRange(parametros.ToArray());
@@ -407,14 +403,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT * FROM usuario WHERE IntentosLogin >= 5 ORDER BY ActualizadoAt DESC";
+                const string query = "SELECT * FROM usuario WHERE IntentosLogin >= 5 ORDER BY ActualizadoAt DESC";
 
                 using var cmd = new MySqlCommand(query, connection);
                 using var reader = await cmd.ExecuteReaderAsync();
@@ -438,18 +432,17 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
                 var fechaLimite = DateTime.UtcNow.AddDays(-diasInactividad);
 
-                string query = @"SELECT * FROM usuario 
-                    WHERE UltimoLoginAt IS NOT NULL AND UltimoLoginAt < @fechaLimite
-                    ORDER BY UltimoLoginAt ASC";
+                const string query = @"
+SELECT * FROM usuario 
+WHERE UltimoLoginAt IS NOT NULL AND UltimoLoginAt < @fechaLimite
+ORDER BY UltimoLoginAt ASC";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@fechaLimite", fechaLimite);
@@ -474,27 +467,23 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                // Verificar email único (excluyendo el usuario actual)
                 var (existeEmail, _, usuarioExistente) = await ObtenerUsuarioPorEmailAsync(usuario.Email);
                 if (existeEmail && usuarioExistente != null && usuarioExistente.IdUsuario != usuario.IdUsuario)
-                {
                     return (false, "El email ya está registrado en otro usuario");
-                }
 
-                string query = @"UPDATE usuario SET 
-                    Nombre = @Nombre,
-                    Email = @Email,
-                    Telefono = @Telefono,
-                    IdEstadoUsuario = @IdEstadoUsuario,
-                    ActualizadoAt = @ActualizadoAt
-                    WHERE IdUsuario = @id";
+                const string query = @"
+UPDATE usuario SET 
+    Nombre = @Nombre,
+    Email = @Email,
+    Telefono = @Telefono,
+    IdEstadoUsuario = @IdEstadoUsuario,
+    ActualizadoAt = @ActualizadoAt
+WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", usuario.IdUsuario);
@@ -507,9 +496,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                 int filasAfectadas = await cmd.ExecuteNonQueryAsync();
 
                 if (filasAfectadas > 0)
-                {
                     return (true, "Usuario actualizado exitosamente");
-                }
 
                 return (false, "No se encontró el usuario a actualizar");
             }
@@ -519,22 +506,21 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
             }
         }
 
-        // Cambiar contraseña
+        // Cambiar contraseña (recibe hash ya calculado)
         public async Task<(bool exito, string mensaje)> CambiarPasswordAsync(int idUsuario, string nuevaPassword)
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = @"UPDATE usuario SET 
-                    Password = @password,
-                    ActualizadoAt = @actualizadoAt
-                    WHERE IdUsuario = @id";
+                const string query = @"
+UPDATE usuario SET 
+    Password = @password,
+    ActualizadoAt = @actualizadoAt
+WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", idUsuario);
@@ -542,11 +528,8 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                 cmd.Parameters.AddWithValue("@actualizadoAt", DateTime.UtcNow);
 
                 int filasAfectadas = await cmd.ExecuteNonQueryAsync();
-
                 if (filasAfectadas > 0)
-                {
                     return (true, "Contraseña actualizada exitosamente");
-                }
 
                 return (false, "No se encontró el usuario");
             }
@@ -561,28 +544,24 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = @"UPDATE usuario SET 
-                    IntentosLogin = 0,
-                    ActualizadoAt = @actualizadoAt
-                    WHERE IdUsuario = @id";
+                const string query = @"
+UPDATE usuario SET 
+    IntentosLogin = 0,
+    ActualizadoAt = @actualizadoAt
+WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", idUsuario);
                 cmd.Parameters.AddWithValue("@actualizadoAt", DateTime.UtcNow);
 
                 int filasAfectadas = await cmd.ExecuteNonQueryAsync();
-
                 if (filasAfectadas > 0)
-                {
                     return (true, "Usuario desbloqueado exitosamente");
-                }
 
                 return (false, "No se encontró el usuario");
             }
@@ -597,24 +576,19 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "DELETE FROM usuario WHERE IdUsuario = @id";
+                const string query = "DELETE FROM usuario WHERE IdUsuario = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@id", id);
 
                 int filasAfectadas = await cmd.ExecuteNonQueryAsync();
-
                 if (filasAfectadas > 0)
-                {
                     return (true, "Usuario eliminado exitosamente");
-                }
 
                 return (false, "No se encontró el usuario a eliminar");
             }
@@ -629,14 +603,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return false;
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT COUNT(*) FROM usuario WHERE Dni = @dni";
+                const string query = "SELECT COUNT(*) FROM usuario WHERE Dni = @dni";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@dni", dni);
@@ -655,14 +627,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return false;
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = "SELECT COUNT(*) FROM usuario WHERE Email = @email";
+                const string query = "SELECT COUNT(*) FROM usuario WHERE Email = @email";
 
                 using var cmd = new MySqlCommand(query, connection);
                 cmd.Parameters.AddWithValue("@email", email.ToLower());
@@ -682,20 +652,19 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         {
             var connectionResult = db_single.GetConnection();
             if (!connectionResult.Exito || connectionResult.Conexion == null)
-            {
                 return (false, connectionResult.Mensaje, null);
-            }
 
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = @"SELECT 
-                    COUNT(*) as TotalUsuarios,
-                    COUNT(CASE WHEN IntentosLogin >= 5 THEN 1 END) as Bloqueados,
-                    COUNT(CASE WHEN UltimoLoginAt IS NULL THEN 1 END) as NuncaLogueados,
-                    COUNT(CASE WHEN UltimoLoginAt >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as Activos,
-                    COUNT(CASE WHEN UltimoLoginAt < DATE_SUB(NOW(), INTERVAL 90 DAY) THEN 1 END) as Inactivos
-                    FROM usuario";
+                const string query = @"
+SELECT 
+    COUNT(*) as TotalUsuarios,
+    COUNT(CASE WHEN IntentosLogin >= 5 THEN 1 END) as Bloqueados,
+    COUNT(CASE WHEN UltimoLoginAt IS NULL THEN 1 END) as NuncaLogueados,
+    COUNT(CASE WHEN UltimoLoginAt >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as Activos,
+    COUNT(CASE WHEN UltimoLoginAt < DATE_SUB(NOW(), INTERVAL 90 DAY) THEN 1 END) as Inactivos
+FROM usuario";
 
                 using var cmd = new MySqlCommand(query, connection);
                 using var reader = await cmd.ExecuteReaderAsync();
@@ -718,7 +687,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
             }
         }
 
-        // Método auxiliar para mapear resultados
+        // Mapear resultados
         private Usuario MapearUsuario(MySqlDataReader reader)
         {
             return new Usuario

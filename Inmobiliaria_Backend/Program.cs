@@ -1,4 +1,5 @@
 using backend_csharpcd_inmo.Structure_MVC.DAO;
+using Inmobiliaria_Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IPasswordService, PasswordService>();
 
 // DAOs
 builder.Services.AddScoped<CitaDao>();

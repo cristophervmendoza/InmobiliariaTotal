@@ -2,6 +2,7 @@
 using backend_csharpcd_inmo.Structure_MVC.Models;
 using backend_csharpcd_inmo.Structure_MVC.DAO;
 using System.ComponentModel.DataAnnotations;
+using Inmobiliaria_Backend.Services;
 
 namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 {
@@ -10,10 +11,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
     public class UsuarioController : ControllerBase
     {
         private readonly UsuarioDao _usuarioDao;
+        private readonly IPasswordService _pwd;
 
-        public UsuarioController()
+        public UsuarioController(UsuarioDao usuarioDao, IPasswordService pwd)
         {
-            _usuarioDao = new UsuarioDao();
+            _usuarioDao = usuarioDao;
+            _pwd = pwd;
         }
 
         // POST: api/Usuario/registro
@@ -41,14 +44,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 ActualizadoAt = DateTime.UtcNow
             };
 
-            // Limpiar y normalizar
             usuario.LimpiarNombre();
             usuario.NormalizarEmail();
 
-            // Hash de contraseña
-            usuario.Password = usuario.HashPassword(dto.Password);
+            // Hash de contraseña con BCrypt
+            usuario.Password = _pwd.Hash(dto.Password);
 
-            // Validar
             var validationContext = new ValidationContext(usuario);
             var validationResults = new List<ValidationResult>();
             if (!Validator.TryValidateObject(usuario, validationContext, validationResults, true))
@@ -75,7 +76,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             if (exito)
             {
                 return CreatedAtAction(nameof(ObtenerUsuarioPorId),
-                    new { id = id },
+                    new { id },
                     new { exito = true, mensaje, id });
             }
 
@@ -96,46 +97,58 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 });
             }
 
-            var (exito, mensaje, usuario) = await _usuarioDao.LoginAsync(dto.Email, dto.Password);
+            // El DAO trae el usuario (con Password hash) y rol
+            var (exito, mensaje, usuario, rol) = await _usuarioDao.LoginAsync(dto.Email, dto.Password);
 
-            if (exito && usuario != null)
+            if (usuario != null)
             {
-                // Actualizar último login
-                await _usuarioDao.ActualizarLoginExitosoAsync(usuario.IdUsuario);
+                // Evita excepciones: solo verifica si el hash parece BCrypt
+                var passwordOk = _pwd.Verify(dto.Password, usuario.Password);
 
-                var response = new
+                if (exito && passwordOk)
                 {
-                    exito = true,
-                    mensaje,
-                    usuario = new
+                    // Rehash oportunista si aumentaste el cost
+                    if (_pwd.NeedsRehash(usuario.Password))
                     {
-                        usuario.IdUsuario,
-                        usuario.Nombre,
-                        usuario.Email,
-                        usuario.Dni,
-                        usuario.Telefono,
-                        usuario.NombreCorto,
-                        usuario.Iniciales,
-                        usuario.IdEstadoUsuario
+                        var nuevoHash = _pwd.Hash(dto.Password);
+                        await _usuarioDao.CambiarPasswordAsync(usuario.IdUsuario, nuevoHash);
                     }
-                };
 
-                return Ok(response);
-            }
-            else if (!exito && usuario != null)
-            {
-                // Registrar intento fallido
-                await _usuarioDao.RegistrarIntentoFallidoAsync(usuario.IdUsuario);
+                    await _usuarioDao.ActualizarLoginExitosoAsync(usuario.IdUsuario);
 
-                var intentosRestantes = 5 - (usuario.IntentosLogin + 1);
-                return Unauthorized(new
+                    return Ok(new
+                    {
+                        exito = true,
+                        mensaje = "Login exitoso",
+                        usuario = new
+                        {
+                            usuario.IdUsuario,
+                            usuario.Nombre,
+                            usuario.Email,
+                            usuario.Dni,
+                            usuario.Telefono,
+                            usuario.NombreCorto,
+                            usuario.Iniciales,
+                            usuario.IdEstadoUsuario,
+                            rol
+                        }
+                    });
+                }
+                else
                 {
-                    exito = false,
-                    mensaje = $"Credenciales inválidas. Intentos restantes: {intentosRestantes}"
-                });
+                    await _usuarioDao.RegistrarIntentoFallidoAsync(usuario.IdUsuario);
+                    var intentosRestantes = 5 - (usuario.IntentosLogin + 1);
+                    return Unauthorized(new
+                    {
+                        exito = false,
+                        mensaje = mensaje?.Contains("bloqueado") == true
+                                  ? mensaje
+                                  : $"Credenciales inválidas. Intentos restantes: {intentosRestantes}"
+                    });
+                }
             }
 
-            return Unauthorized(new { exito = false, mensaje });
+            return Unauthorized(new { exito = false, mensaje = mensaje ?? "Usuario no encontrado" });
         }
 
         // GET: api/Usuario/{id}
@@ -143,9 +156,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> ObtenerUsuarioPorId(int id)
         {
             if (id <= 0)
-            {
                 return BadRequest(new { exito = false, mensaje = "ID inválido" });
-            }
 
             var (exito, mensaje, usuario) = await _usuarioDao.ObtenerUsuarioPorIdAsync(id);
 
@@ -188,9 +199,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> ObtenerUsuarioPorEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-            {
                 return BadRequest(new { exito = false, mensaje = "Email inválido" });
-            }
 
             var (exito, mensaje, usuario) = await _usuarioDao.ObtenerUsuarioPorEmailAsync(email);
 
@@ -219,9 +228,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> ObtenerUsuarioPorDni(string dni)
         {
             if (string.IsNullOrWhiteSpace(dni) || dni.Length != 8)
-            {
                 return BadRequest(new { exito = false, mensaje = "DNI inválido" });
-            }
 
             var (exito, mensaje, usuario) = await _usuarioDao.ObtenerUsuarioPorDniAsync(dni);
 
@@ -252,9 +259,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             var (exito, mensaje, usuarios) = await _usuarioDao.ListarUsuariosAsync();
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje, data = usuarios, total = usuarios?.Count ?? 0 });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -265,11 +270,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         {
             if (pagina <= 0 || tamanoPagina <= 0 || tamanoPagina > 100)
             {
-                return BadRequest(new
-                {
-                    exito = false,
-                    mensaje = "Parámetros de paginación inválidos"
-                });
+                return BadRequest(new { exito = false, mensaje = "Parámetros de paginación inválidos" });
             }
 
             var (exito, mensaje, usuarios, totalRegistros) =
@@ -304,9 +305,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 await _usuarioDao.BuscarUsuariosAsync(termino, bloqueados, idEstado);
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje, data = usuarios, total = usuarios?.Count ?? 0 });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -318,9 +317,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             var (exito, mensaje, usuarios) = await _usuarioDao.ObtenerUsuariosBloqueadosAsync();
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje, data = usuarios, total = usuarios?.Count ?? 0 });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -330,17 +327,13 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> ObtenerUsuariosInactivos([FromQuery] int diasInactividad = 90)
         {
             if (diasInactividad <= 0)
-            {
                 return BadRequest(new { exito = false, mensaje = "Días de inactividad inválido" });
-            }
 
             var (exito, mensaje, usuarios) =
                 await _usuarioDao.ObtenerUsuariosInactivosAsync(diasInactividad);
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje, data = usuarios, total = usuarios?.Count ?? 0 });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -352,9 +345,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             var (exito, mensaje, estadisticas) = await _usuarioDao.ObtenerEstadisticasAsync();
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje, data = estadisticas });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -364,9 +355,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> ActualizarUsuario(int id, [FromBody] UsuarioUpdateDto dto)
         {
             if (id <= 0)
-            {
                 return BadRequest(new { exito = false, mensaje = "ID inválido" });
-            }
 
             if (!ModelState.IsValid)
             {
@@ -380,9 +369,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
             var (existeExito, _, usuarioExistente) = await _usuarioDao.ObtenerUsuarioPorIdAsync(id);
             if (!existeExito || usuarioExistente == null)
-            {
                 return NotFound(new { exito = false, mensaje = "Usuario no encontrado" });
-            }
 
             usuarioExistente.Nombre = dto.Nombre;
             usuarioExistente.Email = dto.Email.ToLower();
@@ -393,10 +380,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             usuarioExistente.LimpiarNombre();
             usuarioExistente.NormalizarEmail();
 
-            try
-            {
-                usuarioExistente.ValidarDatos();
-            }
+            try { usuarioExistente.ValidarDatos(); }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { exito = false, mensaje = ex.Message });
@@ -405,9 +389,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             var (exito, mensaje) = await _usuarioDao.ActualizarUsuarioAsync(usuarioExistente);
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje, data = usuarioExistente });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -417,9 +399,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> CambiarPassword(int id, [FromBody] CambiarPasswordDto dto)
         {
             if (id <= 0)
-            {
                 return BadRequest(new { exito = false, mensaje = "ID inválido" });
-            }
 
             if (!ModelState.IsValid)
             {
@@ -433,29 +413,21 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
             var (existeExito, _, usuario) = await _usuarioDao.ObtenerUsuarioPorIdAsync(id);
             if (!existeExito || usuario == null)
-            {
                 return NotFound(new { exito = false, mensaje = "Usuario no encontrado" });
-            }
 
-            // Verificar password actual
-            if (!usuario.VerificarPassword(dto.PasswordActual))
-            {
+            // Verificar password actual (BCrypt) con validación defensiva
+            var passwordActualOk = _pwd.Verify(dto.PasswordActual, usuario.Password);
+            if (!passwordActualOk)
                 return BadRequest(new { exito = false, mensaje = "Contraseña actual incorrecta" });
-            }
 
-            // Validar nueva contraseña
             if (!usuario.EsPasswordSegura(dto.NuevaPassword))
-            {
                 return BadRequest(new { exito = false, mensaje = "La nueva contraseña no cumple los requisitos de seguridad" });
-            }
 
-            var passwordHash = usuario.HashPassword(dto.NuevaPassword);
+            var passwordHash = _pwd.Hash(dto.NuevaPassword);
             var (exito, mensaje) = await _usuarioDao.CambiarPasswordAsync(id, passwordHash);
 
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -465,16 +437,11 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> DesbloquearUsuario(int id)
         {
             if (id <= 0)
-            {
                 return BadRequest(new { exito = false, mensaje = "ID inválido" });
-            }
 
             var (exito, mensaje) = await _usuarioDao.DesbloquearUsuarioAsync(id);
-
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje });
-            }
 
             return BadRequest(new { exito = false, mensaje });
         }
@@ -484,28 +451,21 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public async Task<IActionResult> EliminarUsuario(int id)
         {
             if (id <= 0)
-            {
                 return BadRequest(new { exito = false, mensaje = "ID inválido" });
-            }
 
             var (exito, mensaje) = await _usuarioDao.EliminarUsuarioAsync(id);
-
             if (exito)
-            {
                 return Ok(new { exito = true, mensaje });
-            }
 
             return NotFound(new { exito = false, mensaje });
         }
 
-        // GET: api/Usuario/validar-fuerzapassword?password=ejemplo123
+        // GET: api/Usuario/validar-fuerza-password?password=ejemplo123
         [HttpGet("validar-fuerza-password")]
         public IActionResult ValidarFuerzaPassword([FromQuery] string password)
         {
             if (string.IsNullOrWhiteSpace(password))
-            {
                 return BadRequest(new { exito = false, mensaje = "Password inválido" });
-            }
 
             var usuario = new Usuario();
             var fuerza = usuario.CalcularFuerzaPassword(password);
@@ -521,7 +481,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         }
     }
 
-    // DTOs
+    // DTOs (sin cambios)
     public class UsuarioRegistroDto
     {
         [Required]

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using backend_csharpcd_inmo.Structure_MVC.DAO;
 using backend_csharpcd_inmo.Structure_MVC.Models;
-using backend_csharpcd_inmo.Structure_MVC.DAO;
+using Inmobiliaria_Backend.Services;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace backend_csharpcd_inmo.Structure_MVC.Controllers
@@ -12,10 +13,10 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         private readonly AgenteInmobiliarioDao _agenteDao;
         private readonly UsuarioDao _usuarioDao;
 
-        public AgenteInmobiliarioController()
+        public AgenteInmobiliarioController(AgenteInmobiliarioDao agenteDao, UsuarioDao usuarioDao)
         {
-            _agenteDao = new AgenteInmobiliarioDao();
-            _usuarioDao = new UsuarioDao();
+            _agenteDao = agenteDao;
+            _usuarioDao = usuarioDao;
         }
 
         // POST: api/AgenteInmobiliario

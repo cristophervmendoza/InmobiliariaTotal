@@ -7,7 +7,13 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
 {
     public class AgenteInmobiliarioDao
     {
-        private readonly UsuarioDao _usuarioDao = new UsuarioDao();
+        private readonly UsuarioDao _usuarioDao;
+
+        public AgenteInmobiliarioDao(UsuarioDao usuarioDao)
+        {
+            _usuarioDao = usuarioDao; 
+        }
+
 
         // Crear agente inmobiliario (transacción: usuario + agente)
         public async Task<(bool exito, string mensaje, int? idAgente, int? idUsuario)> CrearAgenteAsync(Usuario usuario)
