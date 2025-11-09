@@ -1,0 +1,329 @@
+<section class="hero">
+  <div class="heroContent">
+    <h1 class="heroTitle">Únete a Nuestro Equipo</h1>
+    <p class="heroSubtitle">Conviértete en un asesor inmobiliario exitoso con Ideal Home Realty</p>
+
+    <div class="statsContainer">
+      <div class="stat">
+        <span-lucide name="users" size="40" color="white"></span-lucide>
+        <div class="statNumber">50+</div>
+        <div class="statLabel">Asesores Activos</div>
+      </div>
+      <div class="stat">
+        <span-lucide name="home" size="40" color="white"></span-lucide>
+        <div class="statNumber">1000+</div>
+        <div class="statLabel">Propiedades Vendidas</div>
+      </div>
+      <div class="stat">
+        <span-lucide name="trophy" size="40" color="white"></span-lucide>
+        <div class="statNumber">10+</div>
+        <div class="statLabel">Años de Experiencia</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="content">
+    <div class="formContainer">
+      <div *ngIf="submitMessage; else formTpl"
+           class="message"
+           [ngClass]="{ messageError: submitMessage.includes('Error'), messageSuccess: !submitMessage.includes('Error') }">
+        <span-lucide [name]="submitMessage.includes('Error') ? 'alert-circle' : 'check'" size="24"></span-lucide>
+        <span>{{ submitMessage }}</span>
+      </div>
+
+      <ng-template #formTpl>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+          <!-- Información Personal -->
+          <div class="section">
+            <div class="sectionHeader">
+              <span-lucide name="user" size="24" color="#0891b2"></span-lucide>
+              <h2 class="sectionTitle">Información Personal</h2>
+            </div>
+
+            <div class="formGrid">
+              <div class="formGroup">
+                <label class="label">Nombre *</label>
+                <input type="text" formControlName="firstName" class="input" [class.inputError]="f['firstName'].invalid && f['firstName'].touched" placeholder="Ej: Juan" />
+                <span class="error" *ngIf="f['firstName'].invalid && f['firstName'].touched">El nombre debe tener al menos 2 caracteres</span>
+              </div>
+
+              <div class="formGroup">
+                <label class="label">Apellido *</label>
+                <input type="text" formControlName="lastName" class="input" [class.inputError]="f['lastName'].invalid && f['lastName'].touched" placeholder="Ej: Pérez" />
+                <span class="error" *ngIf="f['lastName'].invalid && f['lastName'].touched">El apellido debe tener al menos 2 caracteres</span>
+              </div>
+
+              <div class="formGroup">
+                <label class="label">Edad *</label>
+                <input type="number" formControlName="age" class="input" [class.inputError]="f['age'].invalid && f['age'].touched" min="18" max="65" placeholder="18-65 años" />
+                <span class="error" *ngIf="f['age'].invalid && f['age'].touched">Debes tener entre 18 y 65 años</span>
+              </div>
+
+              <div class="formGroup">
+                <label class="label">Teléfono *</label>
+                <div class="inputWrapper">
+                  <span-lucide name="phone" size="18" class="inputIcon"></span-lucide>
+                  <input type="tel" formControlName="phone" class="input" [class.inputError]="f['phone'].invalid && f['phone'].touched" placeholder="+51 999 888 777" />
+                </div>
+                <span class="error" *ngIf="f['phone'].invalid && f['phone'].touched">Teléfono inválido (mínimo 9 dígitos)</span>
+              </div>
+
+              <div class="formGroup fullWidth">
+                <label class="label">Correo Electrónico *</label>
+                <div class="inputWrapper">
+                  <span-lucide name="mail" size="18" class="inputIcon"></span-lucide>
+                  <input type="email" formControlName="email" class="input" [class.inputError]="f['email'].invalid && f['email'].touched" placeholder="tu@email.com" />
+                </div>
+                <span class="error" *ngIf="f['email'].invalid && f['email'].touched">Email inválido</span>
+              </div>
+
+              <div class="formGroup fullWidth">
+                <label class="label">Dirección *</label>
+                <div class="inputWrapper">
+                  <span-lucide name="map-pin" size="18" class="inputIcon"></span-lucide>
+                  <input type="text" formControlName="address" class="input" [class.inputError]="f['address'].invalid && f['address'].touched" placeholder="Tu dirección completa" />
+                </div>
+                <span class="error" *ngIf="f['address'].invalid && f['address'].touched">La dirección es requerida</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formación y Experiencia -->
+          <div class="section">
+            <div class="sectionHeader">
+              <span-lucide name="book-open" size="24" color="#0891b2"></span-lucide>
+              <h2 class="sectionTitle">Formación y Experiencia</h2>
+            </div>
+
+            <div class="formGrid">
+              <div class="formGroup fullWidth">
+                <label class="label">Nivel Educativo *</label>
+                <select formControlName="educationLevel" class="input" [class.inputError]="f['educationLevel'].invalid && f['educationLevel'].touched">
+                  <option value="">Selecciona tu nivel educativo</option>
+                  <option value="secondary">Educación Secundaria</option>
+                  <option value="technical">Educación Técnica</option>
+                  <option value="bachelor">Licenciatura</option>
+                  <option value="master">Postgrado/Maestría</option>
+                </select>
+                <span class="error" *ngIf="f['educationLevel'].invalid && f['educationLevel'].touched">Selecciona un nivel educativo</span>
+              </div>
+
+              <div class="formGroup fullWidth">
+                <label class="label">Cursos Realizados *</label>
+                <textarea formControlName="courses" rows="3" class="textarea" [class.inputError]="f['courses'].invalid && f['courses'].touched" placeholder="Menciona cursos relacionados con ventas, inmobiliaria, atención al cliente, etc."></textarea>
+                <span class="error" *ngIf="f['courses'].invalid && f['courses'].touched">Menciona los cursos realizados</span>
+              </div>
+
+              <div class="formGroup">
+                <label class="label">Experiencia en Ventas *</label>
+                <select formControlName="salesExperience" class="input" [class.inputError]="f['salesExperience'].invalid && f['salesExperience'].touched">
+                  <option value="">Selecciona tu experiencia</option>
+                  <option value="no">Sin experiencia</option>
+                  <option value="less1">Menos de 1 año</option>
+                  <option value="1to3">1 a 3 años</option>
+                  <option value="3to5">3 a 5 años</option>
+                  <option value="more5">Más de 5 años</option>
+                </select>
+                <span class="error" *ngIf="f['salesExperience'].invalid && f['salesExperience'].touched">Selecciona tu experiencia en ventas</span>
+              </div>
+
+              <div class="formGroup">
+                <label class="label">Experiencia Inmobiliaria *</label>
+                <select formControlName="realEstateExperience" class="input" [class.inputError]="f['realEstateExperience'].invalid && f['realEstateExperience'].touched">
+                  <option value="">Selecciona tu experiencia</option>
+                  <option value="no">Sin experiencia</option>
+                  <option value="less1">Menos de 1 año</option>
+                  <option value="1to3">1 a 3 años</option>
+                  <option value="3to5">3 a 5 años</option>
+                  <option value="more5">Más de 5 años</option>
+                </select>
+                <span class="error" *ngIf="f['realEstateExperience'].invalid && f['realEstateExperience'].touched">Selecciona tu experiencia inmobiliaria</span>
+              </div>
+
+              <div class="formGroup fullWidth">
+                <label class="label">Describe tu Experiencia *</label>
+                <textarea formControlName="experienceDescription" rows="4" class="textarea" [class.inputError]="f['experienceDescription'].invalid && f['experienceDescription'].touched" placeholder="Cuéntanos sobre tu experiencia laboral previa, logros, habilidades destacadas, etc."></textarea>
+                <span class="error" *ngIf="f['experienceDescription'].invalid && f['experienceDescription'].touched">Describe tu experiencia (mínimo 20 caracteres)</span>
+              </div>
+
+              <div class="formGroup fullWidth">
+                <label class="label">Sube tu CV (PDF) *</label>
+                <label class="uploadLabel">
+                  <input type="file" accept=".pdf" (change)="onFileChange($event)" class="uploadInput" />
+                  <div class="uploadContent">
+                    <span-lucide name="upload" size="32" color="#0891b2"></span-lucide>
+                    <span class="uploadText">{{ cvFileName || 'Arrastra tu CV aquí o haz clic para seleccionar' }}</span>
+                    <span class="uploadHint">PDF • Máx 5MB</span>
+                  </div>
+                </label>
+                <span class="error errorBlock" *ngIf="f['cv'].touched && f['cv'].errors?.['required']">El CV es requerido</span>
+                <span class="error errorBlock" *ngIf="f['cv'].errors?.['type']">Solo se aceptan archivos PDF</span>
+                <span class="error errorBlock" *ngIf="f['cv'].errors?.['size']">El archivo no debe superar 5MB</span>
+
+                <div class="cvFile" *ngIf="cvFileName">
+                  <span-lucide name="file-text" size="16"></span-lucide>
+                  <span>{{ cvFileName }}</span>
+                  <button type="button" class="removeCv" (click)="removeCv()">
+                    <span-lucide name="x" size="16"></span-lucide>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Motivación -->
+          <div class="section">
+            <div class="sectionHeader">
+              <span-lucide name="trending-up" size="24" color="#0891b2"></span-lucide>
+              <h2 class="sectionTitle">Motivación y Disponibilidad</h2>
+            </div>
+
+            <div class="formGrid">
+              <div class="formGroup fullWidth">
+                <label class="label">¿Por qué quieres ser asesor inmobiliario? *</label>
+                <textarea formControlName="motivation" rows="4" maxlength="500" class="textarea" [class.inputError]="f['motivation'].invalid && f['motivation'].touched" placeholder="Cuéntanos qué te motiva a trabajar en el sector inmobiliario..."></textarea>
+                <span class="charCounter">{{ form.value.motivation?.length || 0 }}/500</span>
+                <span class="error" *ngIf="f['motivation'].invalid && f['motivation'].touched">Comparte tu motivación (mínimo 20 caracteres)</span>
+              </div>
+
+              <div class="formGroup fullWidth">
+                <label class="label">Disponibilidad Horaria *</label>
+                <select formControlName="availability" class="input" [class.inputError]="f['availability'].invalid && f['availability'].touched">
+                  <option value="">Selecciona tu disponibilidad</option>
+                  <option value="fulltime">Tiempo completo (40+ horas/semana)</option>
+                  <option value="parttime">Medio tiempo (20-30 horas/semana)</option>
+                  <option value="flexible">Horario flexible</option>
+                  <option value="weekends">Solo fines de semana</option>
+                </select>
+                <span class="error" *ngIf="f['availability'].invalid && f['availability'].touched">Selecciona tu disponibilidad horaria</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Términos -->
+          <div class="termsContainer">
+            <label class="termsLabel">
+              <input type="checkbox" formControlName="acceptTerms" class="checkbox" />
+              <span> Acepto los <a href="#terms">términos y condiciones</a> y autorizo el tratamiento de mis datos personales </span>
+            </label>
+            <span class="error errorBlock" *ngIf="f['acceptTerms'].invalid && f['acceptTerms'].touched">Debes aceptar los términos y condiciones</span>
+          </div>
+
+          <!-- Acciones -->
+          <div class="formActions">
+            <button type="reset" class="buttonSecondary" (click)="onReset()">Limpiar Formulario</button>
+            <button type="submit" [disabled]="isSubmitting" class="buttonPrimary" [ngClass]="{ buttonDisabled: isSubmitting }">
+              {{ isSubmitting ? 'Enviando...' : 'Enviar Aplicación' }}
+            </button>
+          </div>
+        </form>
+      </ng-template>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebarCard">
+        <div class="cardHeader">
+          <span-lucide name="trophy" size="24" color="white"></span-lucide>
+          <h3 class="cardTitle">Beneficios</h3>
+        </div>
+
+        <div class="benefitsList">
+          <div class="benefit">
+            <span-lucide name="dollar-sign" size="20" color="#10b981"></span-lucide>
+            <div>
+              <div class="benefitTitle">Comisiones Competitivas</div>
+              <div class="benefitText">Hasta 6% de comisión por venta exitosa</div>
+            </div>
+          </div>
+
+          <div class="benefit">
+            <span-lucide name="book-open" size="20" color="#3b82f6"></span-lucide>
+            <div>
+              <div class="benefitTitle">Capacitación Continua</div>
+              <div class="benefitText">Cursos y talleres especializados gratuitos</div>
+            </div>
+          </div>
+
+          <div class="benefit">
+            <span-lucide name="users-2" size="20" color="#06b6d4"></span-lucide>
+            <div>
+              <div class="benefitTitle">Equipo de Apoyo</div>
+              <div class="benefitText">Soporte en marketing y administración</div>
+            </div>
+          </div>
+
+          <div class="benefit">
+            <span-lucide name="trending-up" size="20" color="#f59e0b"></span-lucide>
+            <div>
+              <div class="benefitTitle">Crecimiento Profesional</div>
+              <div class="benefitText">Oportunidades de ascenso y desarrollo</div>
+            </div>
+          </div>
+
+          <div class="benefit">
+            <span-lucide name="clock" size="20" color="#8b5cf6"></span-lucide>
+            <div>
+              <div class="benefitTitle">Horarios Flexibles</div>
+              <div class="benefitText">Organiza tu propia agenda</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebarCard">
+        <div class="cardHeader" style="background-color:#06b6d4">
+          <span-lucide name="check" size="24" color="white"></span-lucide>
+          <h3 class="cardTitle">Requisitos Básicos</h3>
+        </div>
+        <ul class="requirementsList">
+          <li><span-lucide name="check" size="18" color="#10b981"></span-lucide><span>Mayor de 18 años</span></li>
+          <li><span-lucide name="check" size="18" color="#10b981"></span-lucide><span>Secundaria completa (mínimo)</span></li>
+          <li><span-lucide name="check" size="18" color="#10b981"></span-lucide><span>Excelentes habilidades de comunicación</span></li>
+          <li><span-lucide name="check" size="18" color="#10b981"></span-lucide><span>Orientación al cliente y ventas</span></li>
+          <li><span-lucide name="check" size="18" color="#10b981"></span-lucide><span>Disponibilidad de tiempo</span></li>
+          <li><span-lucide name="check" size="18" color="#10b981"></span-lucide><span>Ganas de aprender y crecer</span></li>
+        </ul>
+      </div>
+
+      <div class="sidebarCard">
+        <div class="cardHeader" style="background-color:#f59e0b">
+          <span-lucide name="users" size="24" color="white"></span-lucide>
+          <h3 class="cardTitle">Proceso de Selección</h3>
+        </div>
+        <div class="timeline">
+          <div class="timelineItem">
+            <div class="timelineNumber">1</div>
+            <div class="timelineContent">
+              <div class="timelineTitle">Aplicación Online</div>
+              <div class="timelineText">Completa el formulario de aplicación</div>
+            </div>
+          </div>
+          <div class="timelineItem">
+            <div class="timelineNumber">2</div>
+            <div class="timelineContent">
+              <div class="timelineTitle">Revisión de Perfil</div>
+              <div class="timelineText">Evaluamos tu aplicación (2-3 días)</div>
+            </div>
+          </div>
+          <div class="timelineItem">
+            <div class="timelineNumber">3</div>
+            <div class="timelineContent">
+              <div class="timelineTitle">Entrevista Personal</div>
+              <div class="timelineText">Conversación con nuestro equipo</div>
+            </div>
+          </div>
+          <div class="timelineItem">
+            <div class="timelineNumber">4</div>
+            <div class="timelineContent">
+              <div class="timelineTitle">Capacitación</div>
+              <div class="timelineText">Programa de inducción y entrenamiento</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

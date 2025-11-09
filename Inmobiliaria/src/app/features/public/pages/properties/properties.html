@@ -1,0 +1,189 @@
+<div class="listaPropiedades">
+  <!-- Hero con buscador -->
+  <section class="hero">
+    <div class="heroContent">
+      <h1 class="heroTitle">Encuentra tu Propiedad Ideal</h1>
+      <p class="heroSubtitle">
+        {{ isLoading ? 'Cargando...' : (filteredProperties.length + ' ' + (filteredProperties.length === 1 ? 'propiedad disponible' : 'propiedades disponibles')) }}
+      </p>
+
+      <div class="searchBox">
+        <div class="searchField">
+          <i-lucide name="search" [size]="20" class="searchIcon"></i-lucide>
+          <input type="text"
+                 placeholder="Buscar por ubicación o título"
+                 [(ngModel)]="searchText"
+                 (ngModelChange)="applyFilters()"
+                 class="searchInput" />
+        </div>
+
+        <div class="searchField">
+          <i-lucide name="home" [size]="20" class="searchIcon"></i-lucide>
+          <select [(ngModel)]="selectedType"
+                  (ngModelChange)="applyFilters()"
+                  class="searchSelect">
+            <option value="">Todos los tipos</option>
+            <option value="casa">Casa</option>
+            <option value="departamento">Departamento</option>
+            <option value="oficina">Oficina</option>
+            <option value="terreno">Terreno</option>
+          </select>
+        </div>
+
+        <button (click)="showFilters = !showFilters" class="filterButton">
+          <i-lucide name="sliders-horizontal" [size]="20"></i-lucide>
+          <span>Filtros</span>
+        </button>
+      </div>
+
+      <div class="advancedFilters" *ngIf="showFilters">
+        <div class="filterGroup">
+          <label class="filterLabel">Moneda</label>
+          <select [(ngModel)]="selectedCurrency"
+                  (ngModelChange)="applyFilters()"
+                  class="filterSelect">
+            <option value="PEN">Soles (S/)</option>
+            <option value="USD">Dólares ($)</option>
+          </select>
+        </div>
+
+        <div class="filterGroup">
+          <label class="filterLabel">Precio Mínimo</label>
+          <div class="priceInputWrapper">
+            <i-lucide name="dollar-sign" [size]="16" class="priceIcon"></i-lucide>
+            <input type="number"
+                   placeholder="0"
+                   [(ngModel)]="minPrice"
+                   (ngModelChange)="applyFilters()"
+                   class="priceInput" />
+          </div>
+        </div>
+
+        <div class="filterGroup">
+          <label class="filterLabel">Precio Máximo</label>
+          <div class="priceInputWrapper">
+            <i-lucide name="dollar-sign" [size]="16" class="priceIcon"></i-lucide>
+            <input type="number"
+                   placeholder="Sin límite"
+                   [(ngModel)]="maxPrice"
+                   (ngModelChange)="applyFilters()"
+                   class="priceInput" />
+          </div>
+        </div>
+
+        <div class="filterGroup">
+          <label class="filterLabel">Habitaciones</label>
+          <select [(ngModel)]="selectedBedrooms"
+                  (ngModelChange)="applyFilters()"
+                  class="filterSelect">
+            <option value="">Todas</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="container">
+      <div class="toolbarContent">
+        <div class="resultsCount">
+          {{ filteredProperties.length }} {{ filteredProperties.length === 1 ? 'propiedad' : 'propiedades' }}
+        </div>
+
+        <div class="toolbarActions">
+          <select [(ngModel)]="sortBy" (ngModelChange)="applyFilters()" class="sortSelect">
+            <option value="recent">Más recientes</option>
+            <option value="price-low">Precio: Menor a mayor</option>
+            <option value="price-high">Precio: Mayor a menor</option>
+          </select>
+
+          <div class="viewToggle">
+            <button (click)="viewMode = 'grid'"
+                    class="viewButton"
+                    [class.viewButtonActive]="viewMode === 'grid'"
+                    aria-label="Vista en cuadrícula">
+              <i-lucide name="grid-3x3" [size]="20"></i-lucide>
+            </button>
+            <button (click)="viewMode = 'list'"
+                    class="viewButton"
+                    [class.viewButtonActive]="viewMode === 'list'"
+                    aria-label="Vista en lista">
+              <i-lucide name="list" [size]="20"></i-lucide>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="container">
+    <div class="loading" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Cargando propiedades...</p>
+    </div>
+
+    <div class="noResults" *ngIf="!isLoading && !filteredProperties.length">
+      <i-lucide name="home" [size]="64" color="#94a3b8"></i-lucide>
+      <h3>No se encontraron propiedades</h3>
+      <p>Intenta ajustar los filtros de búsqueda</p>
+    </div>
+
+    <div *ngIf="!isLoading && filteredProperties.length"
+         [ngClass]="{ propertiesGrid: viewMode === 'grid', propertiesList: viewMode === 'list' }">
+      <div *ngFor="let property of filteredProperties"
+           [ngClass]="{ propertyCard: viewMode === 'grid', propertyCardList: viewMode === 'list' }">
+        <div class="propertyImage" (click)="onCardClick(property.id)">
+          <img [src]="property.imageUrl" [alt]="property.title" />
+          <span class="featuredBadge" *ngIf="property.featured">Destacado</span>
+          <span class="statusBadge">{{ property.status }}</span>
+
+          <button (click)="toggleFavorito($event, property.id)"
+                  class="favoriteButton"
+                  [class.favoriteButtonActive]="favoritos.includes(property.id)"
+                  aria-label="Agregar a favoritos"
+                  [title]="favoritos.includes(property.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'">
+            <i-lucide name="heart"
+                      [size]="20"
+                      [attr.fill]="favoritos.includes(property.id) ? '#ef4444' : 'none'"
+                      [attr.color]="favoritos.includes(property.id) ? '#ef4444' : '#cbd5e1'"></i-lucide>
+          </button>
+        </div>
+
+        <div class="propertyContent">
+          <h3 class="propertyTitle">{{ property.title }}</h3>
+
+          <div class="propertyLocation">
+            <i-lucide name="map-pin" [size]="16"></i-lucide>
+            <span>{{ property.location }}</span>
+          </div>
+
+          <div class="propertyDetails">
+            <span *ngIf="property.bedrooms > 0">
+              <i-lucide name="bed" [size]="16"></i-lucide> {{ property.bedrooms }} hab.
+            </span>
+            <span *ngIf="property.bathrooms > 0">
+              <i-lucide name="bath" [size]="16"></i-lucide> {{ property.bathrooms }} baños
+            </span>
+            <span>
+              <i-lucide name="maximize" [size]="16"></i-lucide> {{ property.area }} m²
+            </span>
+          </div>
+
+          <div class="propertyFooter">
+            <div class="propertyPrice">
+              {{ formatPrice(property.price, property.currency) }}
+            </div>
+            <button class="detailButton" (click)="onCardClick(property.id)">Ver detalles</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

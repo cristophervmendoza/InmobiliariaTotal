@@ -1,0 +1,736 @@
+
+
+
+.portada {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ===== HERO SECTION ===== */
+.hero {
+  position: relative;
+  height: 750px;
+  width: 100vw; /* ocupa todo el viewport */
+  margin-left: 50%;
+  transform: translateX(-50%); /* elimina el margen del contenedor padre */
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #0891b2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* Video a pantalla completa detrás del contenido */
+.heroVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;           /* recorta para llenar sin deformar */
+  z-index: 0;
+  filter: brightness(0.7);     /* opcional para contraste del texto */
+}
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 1280px; /* más ancho para aprovechar */
+  padding: 0 24px; /* gutters pequeños */
+  margin: 0 auto;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(255,255,255,0.06) 0%, transparent 50%);
+}
+
+
+
+.heroTitle {
+  font-size: 56px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 16px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  font-size: 20px;
+  color: rgba(255,255,255,0.95);
+  margin: 0 0 48px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ===== BUSCADOR ===== */
+.searchBox {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.searchField {
+  flex: 1.2;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  color: #64748b;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.searchInput, .searchSelect {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #0f172a;
+  background-color: #f8fafc;
+  outline: none;
+  transition: all .2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+  .searchInput:focus, .searchSelect:focus {
+    background-color: #fff;
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+  }
+
+.searchFieldGroup {
+  flex: 1.5;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.searchFieldSmall {
+  flex: 0 0 70px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchFieldLarge {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.searchSelectSmall {
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0891b2;
+  background-color: #f8fafc;
+  outline: none;
+  transition: all .2s ease;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+  .searchSelectSmall:focus {
+    background-color: #fff;
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+  }
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+  .searchButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(6,182,212,0.4);
+  }
+
+/* ===== CONTENEDOR GENERAL ===== */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* ===== ESTADÍSTICAS ===== */
+.statsSection {
+  padding: 80px 0;
+  background-color: #fff;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.statCard {
+  text-align: center;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  transition: all .3s ease;
+}
+
+  .statCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+    border-color: #e0f2fe;
+  }
+
+.statIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.statValue {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ===== SECCIONES GENERALES ===== */
+.featuredSection, .benefitsSection, .testimonialsSection {
+  padding: 80px 0;
+}
+
+.featuredSection {
+  background-color: #f8fafc;
+}
+
+.benefitsSection {
+  background-color: #fff;
+}
+
+.testimonialsSection {
+  background-color: #f8fafc;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.sectionTitle {
+  font-size: 40px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 12px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.sectionSubtitle {
+  font-size: 18px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ===== PROPIEDADES DESTACADAS ===== */
+.propertiesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.propertyCard {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  transition: all .3s ease;
+  cursor: pointer;
+}
+
+  .propertyCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+    border-color: #e0f2fe;
+  }
+
+.propertyImage {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+}
+
+  .propertyImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .3s ease;
+  }
+
+.propertyCard:hover .propertyImage img {
+  transform: scale(1.1);
+}
+
+.featuredBadge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.propertyContent {
+  padding: 24px;
+}
+
+.propertyTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.propertyLocation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.propertyDetails {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 16px;
+}
+
+  .propertyDetails span {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+  }
+
+.propertyFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.propertyPrice {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0891b2;
+}
+
+.viewButton {
+  padding: 10px 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #0891b2;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+  .viewButton:hover {
+    background-color: #e0f2fe;
+    border-color: #06b6d4;
+  }
+
+/* ===== BENEFICIOS ===== */
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.benefitCard {
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.benefitIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0891b2;
+}
+
+.benefitTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.benefitDescription {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== TESTIMONIOS ===== */
+.testimonialsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.testimonialCard {
+  background: #fff;
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  transition: all .3s ease;
+}
+
+  .testimonialCard:hover {
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+    border-color: #e0f2fe;
+  }
+
+.testimonialHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.testimonialAvatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.testimonialInfo {
+  flex: 1;
+}
+
+.testimonialName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.testimonialRole {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.testimonialRating {
+  display: flex;
+  gap: 2px;
+}
+
+.testimonialText {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+  font-style: italic;
+}
+
+.testimonialAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  overflow: hidden; /* recorta la imagen dentro del borde */
+}
+
+  /* Imagen dentro del avatar */
+  .testimonialAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* llena sin deformar */
+    display: block;
+    border-radius: 12px; /* coincide con el contenedor */
+  }
+/* Contenedor de la imagen de propiedad */
+.testimonialProperty {
+  margin: 16px 0 0;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+  /* Mantener relación 16:9 y cubrir */
+  .testimonialProperty img {
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 */
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Si prefieres sin padding-bottom, usa un wrapper */
+  .testimonialProperty img {
+    height: 220px; /* alternativa simple */
+    padding-bottom: 0;
+  }
+
+/* Pie opcional */
+.testimonialPropertyCaption {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #64748b;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+
+
+/* ===== CTA FINAL ===== */
+.ctaSection {
+  height: auto;
+  width: 100vw;
+  padding: 100px 48px;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+  .ctaSection::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 70% 50%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  }
+
+.ctaContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 16px;
+  line-height: 1.2;
+}
+
+.ctaSubtitle {
+  font-size: 18px;
+  color: rgba(255,255,255,0.95);
+  margin: 0 0 40px;
+  line-height: 1.6;
+}
+
+.ctaButtons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.ctaPrimary, .ctaSecondary {
+  padding: 16px 36px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s ease;
+  border: none;
+}
+
+.ctaPrimary {
+  background: #fff;
+  color: #0891b2;
+}
+
+  .ctaPrimary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+  }
+
+.ctaSecondary {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 2px solid #fff;
+  backdrop-filter: blur(10px);
+}
+
+  .ctaSecondary:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-3px);
+  }
+
+.sectionCTA {
+  text-align: center;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s ease;
+}
+
+  .ctaButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(6,182,212,0.4);
+  }
+
+/* ===== RESPONSIVIDAD ===== */
+@media (max-width: 1200px) {
+  .propertiesGrid, .testimonialsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .benefitsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .searchBox {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .searchButton {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 24px;
+  }
+
+  .heroTitle {
+    font-size: 36px;
+  }
+
+  .heroSubtitle {
+    font-size: 16px;
+  }
+
+  .searchBox {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .searchFieldGroup {
+    width: 100%;
+  }
+
+  .searchButton {
+    width: 100%;
+  }
+
+  .propertiesGrid, .benefitsGrid, .testimonialsGrid, .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionTitle {
+    font-size: 32px;
+  }
+
+  .ctaButtons {
+    flex-direction: column;
+  }
+
+  .ctaPrimary, .ctaSecondary {
+    width: 100%;
+  }
+}

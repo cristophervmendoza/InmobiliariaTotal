@@ -1,0 +1,32 @@
+.container {
+  max-width: 2200px;
+  margin: 0 auto;
+  padding: 0; /* sin gutters globales */
+}
+
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+app-topbar {
+  display: block;
+}
+
+app-navbar {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+app-footer {
+  display: block;
+  margin-top: 32px;
+}
+
+/* Elimina cualquier padding o margin del body/main si existiera */
+body, app-root, main {
+  margin: 0;
+  padding: 0;
+}

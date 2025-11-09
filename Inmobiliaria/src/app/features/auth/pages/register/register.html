@@ -1,0 +1,73 @@
+<section class="auth">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <span-lucide name="building-2" size="28" strokeWidth="2"></span-lucide>
+      </div>
+      <div class="auth-title">
+        <h1>Crear cuenta</h1>
+        <p>Un paso para gestionar tus inmuebles</p>
+      </div>
+    </div>
+
+    <form class="auth-form" novalidate>
+      <!-- Nombre -->
+      <label class="field">
+        <span class="field-label">Nombre completo</span>
+        <div class="field-control">
+          <span-lucide name="user" size="18" class="field-icon"></span-lucide>
+          <input type="text" placeholder="Tu nombre y apellido" required />
+        </div>
+      </label>
+
+      <!-- Email -->
+      <label class="field">
+        <span class="field-label">Correo electrónico</span>
+        <div class="field-control">
+          <span-lucide name="mail" size="18" class="field-icon"></span-lucide>
+          <input type="email" placeholder="tunombre@dominio.com" required />
+        </div>
+      </label>
+
+      <!-- Password -->
+      <label class="field">
+        <span class="field-label">Contraseña</span>
+        <div class="field-control">
+          <span-lucide name="lock" size="18" class="field-icon"></span-lucide>
+          <input id="reg-pass" [type]="regPwdVisible ? 'text' : 'password'" placeholder="********" required />
+          <button type="button" class="field-action" (click)="regPwdVisible = !regPwdVisible">
+            <span-lucide name="eye" size="18"></span-lucide>
+          </button>
+        </div>
+      </label>
+
+      <!-- Confirm Password -->
+      <label class="field">
+        <span class="field-label">Confirmar contraseña</span>
+        <div class="field-control">
+          <span-lucide name="lock" size="18" class="field-icon"></span-lucide>
+          <input id="reg-pass2" [type]="regPwd2Visible ? 'text' : 'password'" placeholder="********" required />
+          <button type="button" class="field-action" (click)="regPwd2Visible = !regPwd2Visible">
+            <span-lucide name="eye" size="18"></span-lucide>
+          </button>
+        </div>
+      </label>
+
+      <!-- Términos -->
+      <label class="check">
+        <input type="checkbox" required />
+        <span>Acepto los términos y condiciones</span>
+      </label>
+
+      <!-- Submit -->
+      <button type="submit" class="auth-submit">
+        <span-lucide name="log-in" size="18"></span-lucide>
+        <span>Crear cuenta</span>
+      </button>
+    </form>
+
+    <div class="auth-row center mt">
+      <a class="link" routerLink="/auth/login">¿Ya tienes cuenta? Iniciar sesión</a>
+    </div>
+  </div>
+</section>

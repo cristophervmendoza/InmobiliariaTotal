@@ -1,0 +1,87 @@
+<header class="header">
+  <div class="headerContainer">
+    <div class="headerContent">
+      <!-- Logo -->
+      <div class="logoContainer" routerLink="/home">
+        <div class="logoIcon">
+          <span-lucide name="building-2" size="26" strokeWidth="2.5"></span-lucide>
+        </div>
+        <div class="logoText">
+          <h1 class="logoTitle">Ideal Home</h1>
+          <p class="logoSubtitle">Realty</p>
+        </div>
+      </div>
+
+      <!-- Navegación Desktop -->
+      <nav class="navDesktop">
+        <a *ngFor="let item of navigationItems"
+           [routerLink]="item.path"
+           class="navLink">
+          {{ item.name }}
+        </a>
+      </nav>
+
+      <!-- Botón Usuario Desktop -->
+      <div class="userMenuContainer" #userMenuRoot>
+        <button (click)="toggleUserMenu($event)"
+                class="userButton"
+                type="button"
+                aria-haspopup="menu"
+                [attr.aria-expanded]="isUserMenuOpen">
+          <span-lucide name="user" size="20" strokeWidth="2"></span-lucide>
+          <span class="userName">sandra</span>
+          <span class="chevronIcon" [ngClass]="{ 'chevronRotate': isUserMenuOpen }">▾</span>
+        </button>
+
+        <div class="userDropdown" *ngIf="isUserMenuOpen" (click)="$event.stopPropagation()">
+          <a routerLink="/perfil" class="dropdownItem">
+            <span-lucide name="user" size="18" strokeWidth="2"></span-lucide>
+            <span class="dropdownText">Mi Perfil</span>
+          </a>
+          <a routerLink="/mis-citas" class="dropdownItem">
+            <span-lucide name="calendar" size="18" strokeWidth="2"></span-lucide>
+            <span class="dropdownText">Mis Citas</span>
+          </a>
+          <a routerLink="/favoritos" class="dropdownItem">
+            <span-lucide name="home" size="18" strokeWidth="2"></span-lucide>
+            <span class="dropdownText">Favoritos</span>
+          </a>
+          <div class="dropdownDivider"></div>
+          <button class="dropdownItemLogout" type="button">
+            <span class="dropdownText">Cerrar Sesión</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón Menú Mobile -->
+      <button (click)="toggleMenu()" class="menuButton" aria-label="Menú">
+        <span-lucide [name]="isMenuOpen ? 'x' : 'menu'" size="28" strokeWidth="2"></span-lucide>
+      </button>
+    </div>
+  </div>
+
+  <!-- Menú Mobile -->
+  <div class="mobileMenu" *ngIf="isMenuOpen">
+    <nav class="mobileNav" (click)="$event.stopPropagation()">
+      <a *ngFor="let item of navigationItems"
+         [routerLink]="item.path"
+         class="mobileNavLink">
+        {{ item.name }}
+      </a>
+
+      <div class="mobileDivider"></div>
+
+      <a routerLink="/perfil" class="mobileNavLinkIcon">
+        <span-lucide name="user" size="20" strokeWidth="2"></span-lucide>
+        <span>Mi Perfil</span>
+      </a>
+      <a routerLink="/mis-citas" class="mobileNavLinkIcon">
+        <span-lucide name="calendar" size="20" strokeWidth="2"></span-lucide>
+        <span>Mis Citas</span>
+      </a>
+      <button class="mobileLogout" type="button">
+        <span>Cerrar Sesión</span>
+      </button>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,69 @@
+<!-- features/dashboard-admin/components/dashboard/dashboard.html -->
+<div class="container" *ngIf="!loading; else loadingTpl">
+  <!-- Header -->
+  <header class="header">
+    <h1 class="title">Dashboard</h1>
+    <p class="subtitle">Bienvenido, Juan Pérez</p>
+  </header>
+
+  <!-- Estadísticas principales -->
+  <div class="grid stats">
+    <div class="card" *ngFor="let stat of stats">
+      <div class="iconWrapper">
+        <div class="iconContainer">
+          <span-lucide [name]="stat.icon" class="icon" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+      <h3 class="title">{{ stat.titulo }}</h3>
+      <p class="value">{{ stat.valor }}</p>
+    </div>
+  </div>
+
+  <!-- Panel de gráficos -->
+  <div class="grid charts">
+    <div class="card" *ngFor="let grafico of graficos">
+      <div class="header">
+        <div class="iconContainer">
+          <span-lucide [name]="grafico.icon" class="icon" size="20" strokeWidth="2.5"></span-lucide>
+        </div>
+        <div class="headerInfo">
+          <h3 class="title">{{ grafico.titulo }}</h3>
+          <p class="subtitle">{{ grafico.subtitulo }}</p>
+        </div>
+      </div>
+
+      <div class="chartPlaceholder">
+        <p class="placeholderText">Gráfico pendiente de integración</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tablas recientes -->
+  <div class="grid tables">
+    <div class="card" *ngFor="let tabla of tablas">
+      <!-- Header de la tabla -->
+      <div class="header">
+        <div class="headerContent">
+          <div class="iconContainer">
+            <span-lucide [name]="tabla.icon" class="icon" size="20" strokeWidth="2.5"></span-lucide>
+          </div>
+          <div class="headerInfo">
+            <h3 class="title">{{ tabla.titulo }}</h3>
+            <p class="subtitle">{{ tabla.subtitulo }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div class="emptyState">
+        <p class="emptyText">{{ tabla.mensaje }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loadingContainer">
+    <div class="spinner"></div>
+  </div>
+</ng-template>

@@ -1,0 +1,342 @@
+<div class="container">
+  <!-- Header -->
+  <div class="pageHeader">
+    <div>
+      <h1 class="pageTitle">Solicitudes de Asesores</h1>
+      <p class="pageSubtitle">Revisa las aplicaciones enviadas por los postulantes</p>
+    </div>
+
+    <button class="botonExportar"
+            [disabled]="exportando || solicitudesFiltradas.length === 0"
+            (click)="handleExportar()">
+      <span-lucide *ngIf="exportando" name="loader-2" class="iconoRotando" size="20" strokeWidth="2"></span-lucide>
+      <span-lucide *ngIf="!exportando" name="file-down" size="20" strokeWidth="2"></span-lucide>
+      <span>{{ exportando ? 'Exportando...' : 'Exportar a Excel' }}</span>
+    </button>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="estadisticasGrid">
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Total</p>
+          <h2 class="valor">{{ stats.total }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#06b6d4' }">
+          <span-lucide name="users" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Pendientes</p>
+          <h2 class="valor">{{ stats.pendientes }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#f59e0b' }">
+          <span-lucide name="clock" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Revisadas</p>
+          <h2 class="valor">{{ stats.revisadas }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#3b82f6' }">
+          <span-lucide name="file-text" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Aprobadas</p>
+          <h2 class="valor">{{ stats.aprobadas }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#10b981' }">
+          <span-lucide name="check-circle" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="selector" style="margin-bottom: 16px;">
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;">
+      <span class="label" style="color:#64748b;">Estado:</span>
+    </div>
+    <div class="opcion" style="background:#fff;border:1px solid #f1f5f9;">
+      <select [(ngModel)]="filtros.estado"
+              (ngModelChange)="onFiltroEstadoChange($event)"
+              style="width:100%;border:none;outline:none;background:transparent;color:#0f172a;">
+        <option value="Todos">Todos</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="Revisada">Revisada</option>
+        <option value="Aprobada">Aprobada</option>
+      </select>
+    </div>
+    <div class="opcion" style="background:#fff;border:1px solid #f1f5f9;justify-content:center;">
+      <button class="opcion" style="background:#e0f2fe;color:#0369a1;">Aplicar</button>
+    </div>
+    <div class="opcion" style="background:#fff;border:1px solid #f1f5f9;justify-content:center;">
+      <button class="opcion" style="background:#fff;color:#64748b;border:1px solid #e2e8f0;"
+              (click)="filtros.estado='Todos'">
+        Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="tablaWrapper">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th class="headerCell">Postulante</th>
+          <th class="headerCell">Nombre</th>
+          <th class="headerCell">Apellido</th>
+          <th class="headerCell">Edad</th>
+          <th class="headerCell">Correo</th>
+          <th class="headerCell">Teléfono</th>
+          <th class="headerCell">Estado</th>
+          <th class="headerCell">CV</th>
+          <th class="headerCell">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fila" *ngFor="let s of solicitudesFiltradas">
+          <td class="celda">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:999px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:700;color:#334155;">
+                {{ s.firstName[0] }}{{ s.lastName[0] }}
+              </div>
+            </div>
+          </td>
+          <td class="celda">{{ s.firstName }}</td>
+          <td class="celda">{{ s.lastName }}</td>
+          <td class="celda">{{ s.age }}</td>
+          <td class="celda">
+            <a [href]="'mailto:'+s.email" style="color:#0369a1;text-decoration:none;">{{ s.email }}</a>
+          </td>
+          <td class="celda">
+            <a [href]="'tel:'+s.phone" style="color:#0369a1;text-decoration:none;">{{ s.phone }}</a>
+          </td>
+          <td class="celda">
+            <span [class]="getEstadoClase(s.estado)">{{ s.estado }}</span>
+          </td>
+          <td class="celda">
+            <button *ngIf="s.cv; else sinCvTpl"
+                    class="opcion"
+                    style="padding:6px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    (click)="handleDescargarCV(s.cv!)">
+              <span-lucide name="file-text" size="16"></span-lucide>
+              <span class="label">{{ s.cv }}</span>
+            </button>
+            <ng-template #sinCvTpl>
+              <span class="badge" style="background:#f1f5f9;color:#475569;border-color:#e2e8f0;">Sin archivo</span>
+            </ng-template>
+          </td>
+          <td class="celda">
+            <button class="opcion"
+                    style="padding:8px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    (click)="verDetalles(s)"
+                    title="Ver detalles">
+              <span-lucide name="eye" size="18"></span-lucide>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Detalles -->
+  <div class="overlay" *ngIf="modalAbierto && solicitudSeleccionada as sel">
+    <div class="modal" style="grid-template-columns:1fr;">
+      <div class="contenido" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:48px;height:48px;border-radius:999px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#334155;">
+              {{ sel.firstName[0] }}{{ sel.lastName[0] }}
+            </div>
+            <div>
+              <h2 class="pageTitle" style="font-size:20px;margin:0;">{{ sel.firstName }} {{ sel.lastName }}</h2>
+              <p class="pageSubtitle" style="margin:0;">Solicitud #{{ sel.id }}</p>
+            </div>
+          </div>
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarModal()">✖ Cerrar</button>
+        </div>
+
+        <!-- Estado -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span-lucide name="check-circle" size="20" style="color:#0891b2;"></span-lucide>
+            <h3 class="titulo" style="text-transform:none;margin:0;">Estado</h3>
+          </div>
+          <span [class]="getEstadoClase(sel.estado)">{{ sel.estado }}</span>
+        </div>
+
+        <!-- Información Personal -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span-lucide name="user" size="20" style="color:#0891b2;"></span-lucide>
+            <h3 class="titulo" style="text-transform:none;margin:0;">Información Personal</h3>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <p class="celda"><strong>Nombre:</strong> {{ sel.firstName }}</p>
+            <p class="celda"><strong>Apellido:</strong> {{ sel.lastName }}</p>
+            <p class="celda"><strong>Edad:</strong> {{ sel.age }} años</p>
+            <p class="celda"><strong>Fecha de Solicitud:</strong> {{ sel.fechaSolicitud }}</p>
+          </div>
+        </div>
+
+        <!-- Contacto -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span-lucide name="mail" size="20" style="color:#0891b2;"></span-lucide>
+            <h3 class="titulo" style="text-transform:none;margin:0;">Contacto</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span-lucide name="mail" size="18" style="color:#06b6d4;"></span-lucide>
+              <div>
+                <p class="pageSubtitle" style="margin:0;">Correo Electrónico</p>
+                <a [href]="'mailto:'+sel.email" style="text-decoration:none;color:#0369a1;">{{ sel.email }}</a>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span-lucide name="phone" size="18" style="color:#06b6d4;"></span-lucide>
+              <div>
+                <p class="pageSubtitle" style="margin:0;">Teléfono</p>
+                <a [href]="'tel:'+sel.phone" style="text-decoration:none;color:#0369a1;">{{ sel.phone }}</a>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span-lucide name="map-pin" size="18" style="color:#06b6d4;"></span-lucide>
+              <div>
+                <p class="pageSubtitle" style="margin:0;">Dirección</p>
+                <p style="margin:0;color:#0f172a;">{{ sel.address }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experiencia y Disponibilidad -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span-lucide name="briefcase" size="20" style="color:#0891b2;"></span-lucide>
+            <h3 class="titulo" style="text-transform:none;margin:0;">Experiencia y Disponibilidad</h3>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <p class="celda"><strong>Experiencia:</strong> {{ sel.realEstateExperience }}</p>
+            <p class="celda"><strong>Disponibilidad:</strong> {{ sel.availability }}</p>
+          </div>
+        </div>
+
+        <!-- Documentos -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span-lucide name="file-text" size="20" style="color:#0891b2;"></span-lucide>
+            <h3 class="titulo" style="text-transform:none;margin:0;">Documentos</h3>
+          </div>
+          <ng-container *ngIf="sel.cv; else noCvModalTpl">
+            <div style="display:flex;align-items:center;gap:12px;border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
+              <span-lucide name="file-text" size="28" style="color:#06b6d4;"></span-lucide>
+              <div style="flex:1;">
+                <p style="margin:0;font-weight:600;color:#0f172a;">{{ sel.cv }}</p>
+                <p style="margin:0;color:#64748b;font-size:12px;">Archivo PDF</p>
+              </div>
+              <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;"
+                      (click)="handleDescargarCV(sel.cv!)">
+                <span-lucide name="download" size="18"></span-lucide>
+                <span class="label">Descargar</span>
+              </button>
+            </div>
+          </ng-container>
+          <ng-template #noCvModalTpl>
+            <div style="display:flex;align-items:center;gap:8px;color:#64748b;">
+              <span-lucide name="file-text" size="20" style="color:#cbd5e1;"></span-lucide>
+              <span>No hay CV disponible</span>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Footer Detalle -->
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarModal()">Cerrar</button>
+          <button class="opcion" style="background:#e0f2fe;border:1px solid #a5f3fc;color:#0369a1;"
+                  (click)="abrirModalCambio()">
+            <span-lucide name="check-circle" size="18"></span-lucide>
+            <span class="label">Cambiar Estado</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cambiar Estado -->
+  <div class="overlay" *ngIf="modalCambioAbierto && solicitudSeleccionada as sel2">
+    <div class="modal" style="grid-template-columns:1fr;">
+      <div class="contenido" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h2 class="pageTitle" style="font-size:20px;margin:0;">Cambiar Estado</h2>
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarModalCambio()">✖</button>
+        </div>
+
+        <p class="pageSubtitle" style="margin:0;">Selecciona el nuevo estado para esta solicitud:</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <label class="opcion" [class.opcionActiva]="nuevoEstadoSeleccionado === 'Pendiente'"
+                 style="justify-content:flex-start;background:#fff;border:1px solid #e2e8f0;"
+                 (click)="nuevoEstadoSeleccionado='Pendiente'">
+            <span-lucide name="clock" size="24" style="color:#f59e0b;"></span-lucide>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:600;color:#0f172a;">Pendiente</div>
+              <div style="font-size:12px;color:#64748b;">La solicitud está en cola para revisar</div>
+            </div>
+            <span [class]="nuevoEstadoSeleccionado==='Pendiente' ? 'badge aprobado' : 'badge'">Elegir</span>
+          </label>
+
+          <label class="opcion" [class.opcionActiva]="nuevoEstadoSeleccionado === 'Revisada'"
+                 style="justify-content:flex-start;background:#fff;border:1px solid #e2e8f0;"
+                 (click)="nuevoEstadoSeleccionado='Revisada'">
+            <span-lucide name="file-text" size="24" style="color:#3b82f6;"></span-lucide>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:600;color:#0f172a;">Revisada</div>
+              <div style="font-size:12px;color:#64748b;">Ya se revisó la solicitud</div>
+            </div>
+            <span [class]="nuevoEstadoSeleccionado==='Revisada' ? 'badge aprobado' : 'badge'">Elegir</span>
+          </label>
+
+          <label class="opcion" [class.opcionActiva]="nuevoEstadoSeleccionado === 'Aprobada'"
+                 style="justify-content:flex-start;background:#fff;border:1px solid #e2e8f0;"
+                 (click)="nuevoEstadoSeleccionado='Aprobada'">
+            <span-lucide name="check-circle" size="24" style="color:#10b981;"></span-lucide>
+            <div style="flex:1;text-align:left;">
+              <div style="font-weight:600;color:#0f172a;">Aprobada</div>
+              <div style="font-size:12px;color:#64748b;">Solicitud aprobada, listo de trabajar</div>
+            </div>
+            <span [class]="nuevoEstadoSeleccionado==='Aprobada' ? 'badge aprobado' : 'badge'">Elegir</span>
+          </label>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;color:#334155;">
+          <div><strong>Estado actual:</strong> <span class="badge" style="background:#f1f5f9;border-color:#e2e8f0;color:#475569;">{{ sel2.estado }}</span></div>
+          <div><strong>Nuevo estado:</strong> <span class="badge aprobado">{{ nuevoEstadoSeleccionado }}</span></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarModalCambio()">Cancelar</button>
+          <button class="opcion"
+                  [disabled]="cargandoCambio || nuevoEstadoSeleccionado === sel2.estado"
+                  style="background:#e0f2fe;border:1px solid #a5f3fc;color:#0369a1;"
+                  (click)="confirmarCambioEstado()">
+            {{ cargandoCambio ? 'Guardando...' : 'Confirmar Cambio' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+.nf-wrapper {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px
+}
+
+h1 {
+  font-size: 64px;
+  margin: 0;
+  color: #0f172a
+}
+
+p {
+  color: #64748b;
+  margin: 0
+}
+
+button {
+  padding: 10px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  cursor: pointer
+}
+
+  button:hover {
+    background: #e0f2fe;
+    border-color: #06b6d4
+  }

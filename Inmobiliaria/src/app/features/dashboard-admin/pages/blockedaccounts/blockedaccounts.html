@@ -1,0 +1,172 @@
+<div class="container">
+  <!-- Header -->
+  <div class="pageHeader">
+    <div>
+      <h1 class="pageTitle">Cuentas Bloqueadas</h1>
+      <p class="pageSubtitle">Gestiona y desbloquea cuentas de usuarios suspendidos por seguridad</p>
+    </div>
+
+    <button class="botonExportar" (click)="abrirModal(usuariosFiltrados[0])" [disabled]="usuariosFiltrados.length === 0">
+      <span-lucide name="file-down" size="20" strokeWidth="2"></span-lucide>
+      <span>Exportar reporte</span>
+    </button>
+  </div>
+
+  <!-- Tarjetas estadísticas -->
+  <div class="estadisticasGrid">
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Total bloqueados</p>
+          <h2 class="valor">{{ totalBloqueados }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#06b6d4' }">
+          <span-lucide name="shield" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Clientes</p>
+          <h2 class="valor">{{ totalClientes }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#0891b2' }">
+          <span-lucide name="users" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Agentes</p>
+          <h2 class="valor">{{ totalAgentes }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#0369a1' }">
+          <span-lucide name="users" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selector de vista (reutilizado como barra de filtros rápidos) -->
+  <div class="selector" style="margin-bottom: 16px;">
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;">
+      <span-lucide name="search" size="18" strokeWidth="2" style="color:#94a3b8"></span-lucide>
+      <input type="text"
+             placeholder="Buscar por nombre, email o DNI..."
+             class="inputInline"
+             [value]="busqueda"
+             (input)="onBusqueda($event)" />
+    </div>
+
+    <select class="opcion" [ngModel]="tipoFiltro" (ngModelChange)="onTipoChange($event)" style="background:#fff;border:1px solid #f1f5f9;">
+      <option value="todos">Todos</option>
+      <option value="Cliente">Clientes</option>
+      <option value="Agente">Agentes</option>
+    </select>
+  </div>
+
+  <!-- Grilla de Cuentas como “tabla” de tarjetas -->
+  <div class="tablaWrapper" *ngIf="usuariosFiltrados.length; else vacioTpl">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th class="headerCell">Usuario</th>
+          <th class="headerCell">Email</th>
+          <th class="headerCell">Teléfono</th>
+          <th class="headerCell">DNI</th>
+          <th class="headerCell">Último acceso</th>
+          <th class="headerCell">Intentos</th>
+          <th class="headerCell">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fila" *ngFor="let u of usuariosFiltrados">
+          <td class="celda">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="avatar">
+                <span class="textoAvatar">{{ obtenerIniciales(u.nombre) }}</span>
+              </div>
+              <div>
+                <div style="font-weight:700;color:#0f172a;">{{ u.nombre }}</div>
+                <span class="badge"
+                      [ngClass]="{ 'aprobado': u.tipo==='Cliente', 'pendiente': u.tipo==='Agente' }">
+                  {{ u.tipo }}
+                </span>
+              </div>
+            </div>
+          </td>
+          <td class="celda">{{ u.email }}</td>
+          <td class="celda">{{ u.telefono }}</td>
+          <td class="celda">{{ u.dni }}</td>
+          <td class="celda">{{ u.ultimoLoginAt | date:'dd/MM/yyyy':'es-PE' }}</td>
+          <td class="celda">
+            <span class="insigniaBloqueado">{{ u.intentosLogin }}</span>
+          </td>
+          <td class="celda">
+            <button class="opcion" style="padding:8px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    title="Desbloquear" (click)="abrirModal(u)">
+              <span-lucide name="unlock" size="18"></span-lucide>
+              <span style="margin-left:6px;">Desbloquear</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #vacioTpl>
+    <div class="contenedorVacio">
+      <p class="mensajeVacio">No hay cuentas bloqueadas para mostrar</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal -->
+  <div class="overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="imagenContainer">
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;">
+          <span-lucide name="shield" size="64" strokeWidth="2" style="color:#94a3b8"></span-lucide>
+        </div>
+      </div>
+
+      <div class="contenido" style="padding:16px;flex-direction:column;gap:12px;">
+        <h2 class="pageTitle" style="font-size:20px;margin:0;">Desbloquear Cuenta</h2>
+
+        <div class="descripcionBox">
+          <p style="margin:0;color:#334155;">
+            Confirma el desbloqueo para permitir que el usuario acceda nuevamente al sistema.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="titulo" style="text-transform:none;">Usuario</h3>
+          <div class="detallesGrid" style="display:grid;grid-template-columns:1fr;gap:6px;">
+            <p class="celda"><strong>Nombre:</strong> {{ usuarioSeleccionado?.nombre }}</p>
+            <p class="celda"><strong>Correo:</strong> {{ usuarioSeleccionado?.email }}</p>
+            <p class="celda"><strong>DNI:</strong> {{ usuarioSeleccionado?.dni }}</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="titulo" style="text-transform:none;">Motivo</h3>
+          <textarea class="textareaMotivo"
+                    placeholder="Describe el motivo por el cual se está desbloqueando esta cuenta..."
+                    rows="4"
+                    [(ngModel)]="motivo"
+                    name="motivo"></textarea>
+        </div>
+      </div>
+
+      <div class="footer" style="grid-column:1/-1;padding:12px;display:flex;justify-content:flex-end;background:#f8fafc;">
+        <button (click)="cerrarModal()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;">Cancelar</button>
+        <button (click)="confirmarDesbloqueo()" class="opcion opcionActiva" [disabled]="!motivo.trim()" style="margin-left:8px;">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

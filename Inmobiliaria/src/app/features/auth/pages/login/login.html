@@ -1,0 +1,84 @@
+<div class="auth">
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="auth-logo">
+        <span-lucide name="building-2" size="24"></span-lucide>
+      </div>
+      <div class="auth-title">
+        <h1>Iniciar Sesión</h1>
+        <p>Accede a tu cuenta de Ideal Home Realty</p>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Email -->
+      <div class="field">
+        <label class="field-label">Correo Electrónico</label>
+        <div class="field-control" [class.error-border]="f['email'].invalid && f['email'].touched">
+          <span-lucide name="mail" size="18" class="field-icon"></span-lucide>
+          <input type="email"
+                 formControlName="email"
+                 placeholder="tu@email.com"
+                 autocomplete="email" />
+        </div>
+        <span class="error" *ngIf="f['email'].invalid && f['email'].touched">
+          {{ f['email'].errors?.['required'] ? 'El email es requerido' : 'Email inválido' }}
+        </span>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="field">
+        <label class="field-label">Contraseña</label>
+        <div class="field-control" [class.error-border]="f['password'].invalid && f['password'].touched">
+          <span-lucide name="lock" size="18" class="field-icon"></span-lucide>
+          <input [type]="passwordVisible ? 'text' : 'password'"
+                 formControlName="password"
+                 placeholder="••••••••"
+                 autocomplete="current-password" />
+          <button type="button"
+                  class="field-action"
+                  (click)="togglePassword()"
+                  aria-label="Mostrar/Ocultar contraseña">
+            <span-lucide [name]="passwordVisible ? 'eye-off' : 'eye'" size="18"></span-lucide>
+          </button>
+        </div>
+        <span class="error" *ngIf="f['password'].invalid && f['password'].touched">
+          {{ f['password'].errors?.['required'] ? 'La contraseña es requerida' : 'Mínimo 6 caracteres' }}
+        </span>
+      </div>
+
+      <!-- Recordar y Olvidaste contraseña -->
+      <div class="auth-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+        <label class="check">
+          <input type="checkbox" formControlName="remember" />
+          <span>Recordarme</span>
+        </label>
+        <a routerLink="/auth/forgot-password" class="link">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <!-- Mensaje de error -->
+      <div class="error-message" *ngIf="errorMessage">
+        <span-lucide name="alert-circle" size="18"></span-lucide>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Botón de envío -->
+      <button type="submit"
+              class="auth-submit"
+              [disabled]="isSubmitting || loginForm.invalid">
+        <span-lucide *ngIf="!isSubmitting" name="log-in" size="18"></span-lucide>
+        <span>{{ isSubmitting ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
+      </button>
+
+      <!-- Registro -->
+      <div class="auth-row center">
+        <span class="mt" style="color: #64748b; font-size: 13px;">
+          ¿No tienes cuenta?
+          <a routerLink="/auth/register" class="link">Regístrate aquí</a>
+        </span>
+      </div>
+    </form>
+  </div>
+</div>

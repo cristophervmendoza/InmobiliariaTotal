@@ -1,0 +1,359 @@
+<div class="container">
+  <div class="header">
+    <div>
+      <h1 class="title">Gestión de Empleados</h1>
+      <p class="subtitle">Administra los agentes inmobiliarios de tu empresa</p>
+    </div>
+    <button (click)="openCreate()" class="createButton">
+      <span-lucide name="plus" size="20" strokeWidth="2.5"></span-lucide>
+      <span>Crear Empleado</span>
+    </button>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="estadisticasGrid">
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Total</p>
+          <h2 class="valor">{{ stats.total }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#06b6d4' }">
+          <span-lucide name="users" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Pendientes</p>
+          <h2 class="valor">{{ stats.pendientes }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#f59e0b' }">
+          <span-lucide name="clock" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Revisadas</p>
+          <h2 class="valor">{{ stats.revisadas }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#3b82f6' }">
+          <span-lucide name="file-text" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Aprobadas</p>
+          <h2 class="valor">{{ stats.aprobadas }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#10b981' }">
+          <span-lucide name="check-circle" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filterContainer">
+    <div class="searchWrapper">
+      <span-lucide name="search" size="18" strokeWidth="2.5" class="searchIcon"></span-lucide>
+      <input type="text"
+             placeholder="Buscar por nombre o apellido..."
+             [value]="searchTerm"
+             (input)="onSearchChange($event)"
+             class="searchInput" />
+      <!-- Alternativa: (input)="onSearchChange($any($event.target).value)" -->
+    </div>
+
+    <select [ngModel]="statusFilter"
+            (ngModelChange)="onStatusChange($event)"
+            class="statusSelect"
+            name="statusFilter">
+      <option value="todos">Todos los estados</option>
+      <option value="activo">Activos</option>
+      <option value="inactivo">Inactivos</option>
+    </select>
+  </div>
+
+  <!-- Listado de empleados -->
+  <div class="tableContainer" *ngIf="filteredEmpleados.length > 0; else emptyState">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Foto</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Fecha Ingreso</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let empleado of filteredEmpleados">
+          <td>
+            <img [src]="empleado.fotoPerfil || '/assets/placeholder.svg'"
+                 [alt]="empleado.nombre + ' ' + empleado.apellido"
+                 class="avatar" />
+          </td>
+          <td>
+            <span class="name">{{ empleado.nombre }} {{ empleado.apellido }}</span>
+          </td>
+          <td>{{ empleado.correo }}</td>
+          <td>{{ empleado.telefono }}</td>
+          <td>{{ empleado.fechaIngreso | date:'dd/MM/yyyy':'es-ES' }}</td>
+          <td>
+            <span class="badge" [ngClass]="empleado.estado === 'activo' ? 'badgeActive' : 'badgeInactive'">
+              {{ empleado.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions">
+              <button (click)="handleView(empleado)" class="actionButton" title="Ver detalles">
+                <span-lucide name="eye" size="18" strokeWidth="2.5"></span-lucide>
+              </button>
+              <button (click)="handleEdit(empleado)" class="actionButton" title="Editar">
+                <span-lucide name="edit-2" size="18" strokeWidth="2.5"></span-lucide>
+              </button>
+              <button (click)="handleDelete(empleado.id)"
+                      class="actionButton deleteButton"
+                      title="Eliminar">
+                <span-lucide name="trash-2" size="18" strokeWidth="2.5"></span-lucide>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="emptyState">
+      <p>No hay empleados registrados</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal Formulario -->
+  <div class="modalOverlay" *ngIf="showForm" (click)="closeForm()">
+    <div class="modalContent" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h2>{{ editingEmployee ? 'Editar Empleado' : 'Crear Nuevo Empleado' }}</h2>
+        <button (click)="closeForm()" class="closeButton" aria-label="Cerrar">
+          <span-lucide name="x" size="24" strokeWidth="2.5"></span-lucide>
+        </button>
+      </div>
+
+      <form (ngSubmit)="handleSave()" class="form" autocomplete="off">
+        <div class="formGrid">
+          <div class="formGroup fullWidth">
+            <label for="fotoPerfil">Foto de Perfil</label>
+            <div class="imageUploadContainer">
+              <div class="imagePreviewWrapper">
+                <img *ngIf="imagePreview; else placeholderImg" [src]="imagePreview" alt="Preview" class="imagePreview" />
+                <ng-template #placeholderImg>
+                  <div class="imagePlaceholder">
+                    <span-lucide name="upload" size="32" strokeWidth="2.5"></span-lucide>
+                    <p>Sin imagen</p>
+                  </div>
+                </ng-template>
+              </div>
+
+              <input type="file"
+                     id="fotoPerfil"
+                     name="fotoPerfil"
+                     accept="image/*"
+                     (change)="handleImageChange($event)"
+                     class="fileInput" />
+              <label for="fotoPerfil" class="fileInputLabel">
+                <span-lucide name="upload" size="18" strokeWidth="2.5"></span-lucide>
+                <span>Seleccionar imagen</span>
+              </label>
+            </div>
+            <span class="error" *ngIf="errors['fotoPerfil']">{{ errors['fotoPerfil'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="nombre">Nombre *</label>
+            <input type="text"
+                   id="nombre"
+                   name="nombre"
+                   [ngModel]="formData.nombre"
+                   (ngModelChange)="handleInputChange('nombre', $event)"
+                   [class.inputError]="!!errors['nombre']" />
+            <span class="error" *ngIf="errors['nombre']">{{ errors['nombre'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="apellido">Apellido *</label>
+            <input type="text"
+                   id="apellido"
+                   name="apellido"
+                   [ngModel]="formData.apellido"
+                   (ngModelChange)="handleInputChange('apellido', $event)"
+                   [class.inputError]="!!errors['apellido']" />
+            <span class="error" *ngIf="errors['apellido']">{{ errors['apellido'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="dni">DNI *</label>
+            <input type="text"
+                   id="dni"
+                   name="dni"
+                   [ngModel]="formData.dni"
+                   (ngModelChange)="handleInputChange('dni', $event)"
+                   [class.inputError]="!!errors['dni']" />
+            <span class="error" *ngIf="errors['dni']">{{ errors['dni'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="correo">Correo *</label>
+            <input type="email"
+                   id="correo"
+                   name="correo"
+                   [ngModel]="formData.correo"
+                   (ngModelChange)="handleInputChange('correo', $event)"
+                   [class.inputError]="!!errors['correo']" />
+            <span class="error" *ngIf="errors['correo']">{{ errors['correo'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="telefono">Teléfono *</label>
+            <input type="tel"
+                   id="telefono"
+                   name="telefono"
+                   [ngModel]="formData.telefono"
+                   (ngModelChange)="handleInputChange('telefono', $event)"
+                   [class.inputError]="!!errors['telefono']" />
+            <span class="error" *ngIf="errors['telefono']">{{ errors['telefono'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="fechaIngreso">Fecha de Ingreso *</label>
+            <input type="date"
+                   id="fechaIngreso"
+                   name="fechaIngreso"
+                   [ngModel]="formData.fechaIngreso"
+                   (ngModelChange)="handleInputChange('fechaIngreso', $event)" />
+          </div>
+
+          <div class="formGroup fullWidth">
+            <label for="direccion">Dirección *</label>
+            <input type="text"
+                   id="direccion"
+                   name="direccion"
+                   [ngModel]="formData.direccion"
+                   (ngModelChange)="handleInputChange('direccion', $event)"
+                   [class.inputError]="!!errors['direccion']" />
+            <span class="error" *ngIf="errors['direccion']">{{ errors['direccion'] }}</span>
+          </div>
+
+          <div class="formGroup fullWidth" *ngIf="!editingEmployee">
+            <label for="contrasena">Contraseña *</label>
+            <input type="password"
+                   id="contrasena"
+                   name="contrasena"
+                   [ngModel]="formData.contrasena"
+                   (ngModelChange)="handleInputChange('contrasena', $event)"
+                   [class.inputError]="!!errors['contrasena']" />
+            <span class="error" *ngIf="errors['contrasena']">{{ errors['contrasena'] }}</span>
+          </div>
+
+          <div class="formGroup">
+            <label for="estado">Estado *</label>
+            <select id="estado"
+                    name="estado"
+                    [ngModel]="formData.estado"
+                    (ngModelChange)="handleInputChange('estado', $event)">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="formActions">
+          <button type="button" (click)="closeForm()" class="cancelButton">Cancelar</button>
+          <button type="submit" class="submitButton">
+            {{ editingEmployee ? 'Actualizar' : 'Crear' }} Empleado
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Detalles -->
+  <div class="modalOverlay" *ngIf="showModal" (click)="showModal = false; selectedEmployee = null">
+    <div class="modalContent" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h2>Detalles del Empleado</h2>
+        <button (click)="showModal = false; selectedEmployee = null" class="closeButton" aria-label="Cerrar">
+          <span-lucide name="x" size="24" strokeWidth="2.5"></span-lucide>
+        </button>
+      </div>
+
+      <div class="modalBody" *ngIf="selectedEmployee as empleado">
+        <div class="profileSection">
+          <img [src]="empleado.fotoPerfil || '/assets/placeholder.svg'"
+               [alt]="empleado.nombre + ' ' + empleado.apellido"
+               class="profileImage" />
+          <div>
+            <h3 class="employeeName">{{ empleado.nombre }} {{ empleado.apellido }}</h3>
+            <span class="badge" [ngClass]="empleado.estado === 'activo' ? 'badgeActive' : 'badgeInactive'">
+              {{ empleado.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="infoGrid">
+          <div class="infoItem">
+            <span-lucide name="file-text" size="18" strokeWidth="2.5"></span-lucide>
+            <div>
+              <p class="label">DNI</p>
+              <p class="value">{{ empleado.dni }}</p>
+            </div>
+          </div>
+
+          <div class="infoItem">
+            <span-lucide name="mail" size="18" strokeWidth="2.5"></span-lucide>
+            <div>
+              <p class="label">Correo</p>
+              <p class="value">{{ empleado.correo }}</p>
+            </div>
+          </div>
+
+          <div class="infoItem">
+            <span-lucide name="phone" size="18" strokeWidth="2.5"></span-lucide>
+            <div>
+              <p class="label">Teléfono</p>
+              <p class="value">{{ empleado.telefono }}</p>
+            </div>
+          </div>
+
+          <div class="infoItem">
+            <span-lucide name="calendar" size="18" strokeWidth="2.5"></span-lucide>
+            <div>
+              <p class="label">Fecha de Ingreso</p>
+              <p class="value">{{ empleado.fechaIngreso | date:'dd/MM/yyyy':'es-ES' }}</p>
+            </div>
+          </div>
+
+          <div class="infoItem fullWidth">
+            <span-lucide name="map-pin" size="18" strokeWidth="2.5"></span-lucide>
+            <div>
+              <p class="label">Dirección</p>
+              <p class="value">{{ empleado.direccion }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalFooter">
+        <button (click)="showModal = false; selectedEmployee = null" class="closeModalButton">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

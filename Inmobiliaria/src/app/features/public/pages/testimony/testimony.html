@@ -1,0 +1,78 @@
+<div class="ofrecerInmueble">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="heroContent container">
+      <h1 class="heroTitle">Casos de Éxito</h1>
+      <p class="heroSubtitle">
+        Historias reales de ventas exitosas realizadas por nuestros agentes y clientes satisfechos
+      </p>
+
+      <div class="statsContainer">
+        <div class="stat">
+          <i-lucide name="users" [size]="40" color="#fbbf24"></i-lucide>
+          <div class="statNumber">{{ testimonies.length }}</div>
+          <div class="statLabel">Testimonios publicados</div>
+        </div>
+        <div class="stat">
+          <i-lucide name="home" [size]="40" color="#fbbf24"></i-lucide>
+          <div class="statNumber">+100</div>
+          <div class="statLabel">Ventas del mes</div>
+        </div>
+        <div class="stat">
+          <i-lucide name="star" [size]="40" color="#fbbf24"></i-lucide>
+          <div class="statNumber">4.9</div>
+          <div class="statLabel">Satisfacción</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTA DE TESTIMONIOS -->
+  <section class="whyChooseUs">
+    <div class="container">
+      <h2 class="sectionTitle">Historias Recientes</h2>
+
+      <div class="cardsGrid" *ngIf="testimonies.length; else emptyTpl">
+        <div class="whyCard" *ngFor="let t of testimonies">
+          <div class="cardIcon" style="background: linear-gradient(135deg, #fde68a 0%, #fef3c7 100%);">
+            <i-lucide name="user" [size]="32"></i-lucide>
+          </div>
+
+          <h3 class="cardTitle">{{ t.agentName }} — {{ t.propertyType | titlecase }}</h3>
+
+          <p class="cardDescription">
+            <i-lucide name="map-pin" [size]="16"></i-lucide>
+            {{ t.location }} •
+            <i-lucide name="calendar" [size]="16"></i-lucide>
+            {{ t.saleDate | date:'longDate' }}
+            <ng-container *ngIf="t.salePrice"> • S/ {{ t.salePrice | number }}</ng-container>
+          </p>
+
+          <div class="previewItem" style="margin-top: 8px;">
+            <img [src]="t.imageUrl" alt="Imagen de la propiedad" />
+          </div>
+
+          <p class="cardDescription" style="margin-top:12px;">
+            {{ t.summary }}
+          </p>
+
+
+
+          <ul style="text-align:left; margin:12px 0 0 0; padding-left:18px;">
+            <li *ngFor="let h of t.highlights">• {{ h }}</li>
+          </ul>
+
+          <p class="cardDescription" style="margin-top:12px;">
+            Cliente: {{ t.clientNameMasked }}
+          </p>
+        </div>
+      </div>
+
+      <ng-template #emptyTpl>
+        <p class="cardDescription" style="text-align:center;">
+          Aún no hay publicaciones. Pronto compartiremos nuevos casos de éxito.
+        </p>
+      </ng-template>
+    </div>
+  </section>
+</div>

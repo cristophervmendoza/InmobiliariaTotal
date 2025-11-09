@@ -1,0 +1,254 @@
+<div class="container">
+  <h2 class="pageTitle">Mantenimientos</h2>
+  <p class="pageSubtitle">Administra, programa y revisa los mantenimientos registrados.</p>
+
+  <!-- Resumen -->
+  <div class="estadisticasGrid">
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Total</p>
+          <h2 class="valor">{{ totalGeneral }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#06b6d4' }">
+          <span-lucide name="clipboard-list" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Pendientes</p>
+          <h2 class="valor">{{ totalPendiente }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#f59e0b' }">
+          <span-lucide name="clock" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Programados</p>
+          <h2 class="valor">{{ totalProgramado }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#3b82f6' }">
+          <span-lucide name="calendar-days" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Completados</p>
+          <h2 class="valor">{{ totalCompletado }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#10b981' }">
+          <span-lucide name="check-circle-2" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="selector" style="margin-bottom: 16px;">
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;gap:8px;">
+      <span-lucide name="search" size="18" class="icono"></span-lucide>
+      <input type="text"
+             placeholder="Buscar propiedad..."
+             [(ngModel)]="filtros.nombre"
+             style="width:100%;border:none;outline:none;background:transparent;color:#0f172a;" />
+    </div>
+
+    <select class="opcion" style="background:#fff;border:1px solid #f1f5f9;"
+            [(ngModel)]="filtros.estado">
+      <option value="">Todos los estados</option>
+      <option value="EN REVISIÓN">En Revisión</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="PROGRAMADO">Programado</option>
+      <option value="COMPLETADO">Completado</option>
+    </select>
+
+    <select class="opcion" style="background:#fff;border:1px solid #f1f5f9;"
+            [(ngModel)]="filtros.tipo">
+      <option value="">Todos los tipos</option>
+      <option value="Plomería">Plomería</option>
+      <option value="Electricidad">Electricidad</option>
+      <option value="Correctivo">Correctivo</option>
+      <option value="Preventivo">Preventivo</option>
+    </select>
+
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;gap:8px;">
+      <span-lucide name="user" size="18" class="icono"></span-lucide>
+      <input type="text"
+             placeholder="Responsable..."
+             [(ngModel)]="filtros.responsable"
+             style="width:100%;border:none;outline:none;background:transparent;color:#0f172a;" />
+    </div>
+
+    <button class="opcion" style="background:#e0f2fe;color:#0369a1;">Aplicar</button>
+    <button class="opcion" style="background:#fff;color:#64748b;border:1px solid #e2e8f0;"
+            (click)="filtros={nombre:'',estado:'',tipo:'',responsable:''}">
+      Limpiar
+    </button>
+
+    <button class="opcion" style="margin-left:auto;background:#fff;border:1px solid #e2e8f0;"
+            (click)="abrirNuevo()">
+      <span-lucide name="plus" size="18"></span-lucide>
+      <span class="label">Nuevo</span>
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="tablaWrapper" *ngIf="!loading; else cargandoTpl">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th class="headerCell">Propiedad</th>
+          <th class="headerCell">Tipo</th>
+          <th class="headerCell">Estado</th>
+          <th class="headerCell">Responsable</th>
+          <th class="headerCell">Fecha</th>
+          <th class="headerCell">Costo (S/)</th>
+          <th class="headerCell">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fila" *ngFor="let m of filtrados">
+          <td class="celda">{{ m.propiedad }}</td>
+          <td class="celda">{{ m.tipo }}</td>
+          <td class="celda">
+            <span [ngClass]="claseEstado(m.estado)">{{ m.estado }}</span>
+          </td>
+          <td class="celda">{{ m.responsable }}</td>
+          <td class="celda">{{ m.fechaProgramada }}</td>
+          <td class="celda">S/ {{ m.costo }}</td>
+          <td class="celda" style="display:flex;gap:8px;align-items:center;">
+            <button class="opcion" style="padding:6px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    title="Editar" (click)="handleEditar(m)">
+              <span-lucide name="pencil" size="16"></span-lucide>
+            </button>
+            <button class="opcion" style="padding:6px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    title="Marcar como Programado" (click)="handleEstado(m.id, 'PROGRAMADO')">
+              <span-lucide name="calendar" size="16"></span-lucide>
+            </button>
+            <button class="opcion" style="padding:6px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    title="Marcar como Completado" (click)="handleEstado(m.id, 'COMPLETADO')">
+              <span-lucide name="check-circle" size="16"></span-lucide>
+            </button>
+            <button class="opcion" style="padding:6px 10px;background:#fff;border:1px solid #e2e8f0;color:#b91c1c;"
+                    title="Eliminar" (click)="handleEliminar(m.id)">
+              <span-lucide name="trash-2" size="16"></span-lucide>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #cargandoTpl>
+    <div class="contenedorVacio">
+      <p class="mensajeVacio">Cargando mantenimientos...</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal Form -->
+  <div class="overlay" *ngIf="mostrarForm">
+    <div class="modal" style="grid-template-columns:1fr;">
+      <div class="contenido" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h2 class="pageTitle" style="font-size:20px;margin:0;">{{ editando ? 'Editar Mantenimiento' : 'Nuevo Mantenimiento' }}</h2>
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarForm()">✕</button>
+        </div>
+
+        <div class="selector" style="flex-direction:column;gap:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Propiedad *</label>
+                <select [(ngModel)]="form.propiedad" style="width:100%;border:none;outline:none;background:transparent;" required>
+                  <option value="">Seleccionar propiedad...</option>
+                  <option *ngFor="let p of propiedadesDisponibles" [value]="p">{{ p }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Tipo de Mantenimiento *</label>
+                <select [(ngModel)]="form.tipo" style="width:100%;border:none;outline:none;background:transparent;" required>
+                  <option value="">Seleccionar tipo...</option>
+                  <option value="Plomería">Plomería</option>
+                  <option value="Electricidad">Electricidad</option>
+                  <option value="Correctivo">Correctivo</option>
+                  <option value="Preventivo">Preventivo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Estado *</label>
+                <select [(ngModel)]="form.estado" style="width:100%;border:none;outline:none;background:transparent;">
+                  <option value="EN REVISIÓN">En Revisión</option>
+                  <option value="PENDIENTE">Pendiente</option>
+                  <option value="PROGRAMADO">Programado</option>
+                  <option value="COMPLETADO">Completado</option>
+                </select>
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;gap:8px;">
+              <div style="width:100%;display:flex;align-items:center;gap:8px;">
+                <span-lucide name="user" size="18" class="icono"></span-lucide>
+                <div style="flex:1;">
+                  <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Responsable</label>
+                  <select [(ngModel)]="form.responsable" style="width:100%;border:none;outline:none;background:transparent;">
+                    <option *ngFor="let r of responsables" [value]="r">{{ r }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Costo (S/)</label>
+                <input type="number" [(ngModel)]="form.costo" placeholder="0.00"
+                       style="width:100%;border:none;outline:none;background:transparent;" />
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Fecha Programada *</label>
+                <input type="date" [(ngModel)]="form.fechaProgramada"
+                       style="width:100%;border:none;outline:none;background:transparent;" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Descripción</label>
+              <textarea rows="3" [(ngModel)]="form.descripcion"
+                        placeholder="Agrega detalles sobre el mantenimiento..."
+                        style="width:100%;border:none;outline:none;background:transparent;"></textarea>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarForm()">Cancelar</button>
+            <button class="opcion" style="background:#e0f2fe;border:1px solid #a5f3fc;color:#0369a1;"
+                    (click)="guardarForm()">
+              {{ editando ? 'Guardar Cambios' : 'Registrar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

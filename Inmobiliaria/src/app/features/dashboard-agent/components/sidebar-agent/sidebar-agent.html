@@ -1,0 +1,39 @@
+<aside class="sidebar">
+  <nav class="nav">
+    <div *ngFor="let section of menuSections; let idx = index"
+         [ngClass]="{ 'menuSectionSpaced': idx > 0, 'menuSection': idx === 0 }">
+
+      <div class="sectionTitle"><span>{{ section.title }}</span></div>
+
+      <div class="menuItems">
+        <a *ngFor="let item of section.items"
+           [routerLink]="item.path"
+           routerLinkActive="menuItemActive"
+           class="menuItem">
+          <span-lucide [name]="item.icon" class="menuIcon" size="20" strokeWidth="2"></span-lucide>
+          <span class="menuText">{{ item.name }}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="bottomMenu">
+      <div class="menuItems">
+        <!-- Configuración ahora cierra sesión -->
+        <button type="button" class="menuItem" (click)="logout()">
+          <span-lucide name="settings" class="menuIcon" size="20" strokeWidth="2"></span-lucide>
+          <span>Configuración</span>
+        </button>
+
+        <!-- Botón de cerrar sesión -->
+        <button class="logoutButton" type="button" (click)="logout()">
+          <span-lucide name="lock" class="menuIcon" size="20" strokeWidth="2"></span-lucide>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="footer">
+    <p class="footerText">© 2025 Ideal Home Realty</p>
+  </div>
+</aside>

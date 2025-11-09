@@ -1,0 +1,188 @@
+/* ===== SCROLLBAR PERSONALIZADO ===== */
+.nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+  .nav::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+
+/* ===== SIDEBAR PRINCIPAL ===== */
+.sidebar {
+  width: 280px;
+  min-height: 100vh;
+  height: 100vh;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 1px 0 10px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+
+
+/* ===== NAVEGACIÓN ===== */
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 16px;
+  background-color: #ffffff;
+}
+
+/* ===== SECCIONES DEL MENÚ ===== */
+.menuSection {
+  margin-top: 0;
+}
+
+.menuSectionSpaced {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.sectionTitle {
+  padding: 0 12px;
+  margin-bottom: 12px;
+}
+
+  .sectionTitle span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+/* ===== ITEMS DEL MENÚ ===== */
+.menuItems {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background-color: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.25s ease-in-out;
+  position: relative;
+  text-align: left;
+  border-left: 3px solid transparent;
+}
+
+  .menuItem:hover {
+    background-color: #f8fafc;
+    color: #0891b2;
+    transform: translateX(3px);
+  }
+
+.menuItemActive {
+  background-color: #e0f2fe;
+  border-left: 3px solid #06b6d4;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+  .menuItemActive:hover {
+    background-color: #e0f2fe;
+    color: #0369a1;
+  }
+
+.menuIcon {
+  flex-shrink: 0;
+}
+
+.menuText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== MENÚ INFERIOR ===== */
+.bottomMenu {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.logoutButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background-color: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #ef4444;
+  transition: all 0.25s ease-in-out;
+  text-align: left;
+  border-left: 3px solid transparent;
+}
+
+  .logoutButton:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+    transform: translateX(3px);
+  }
+
+/* ===== FOOTER ===== */
+.footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  flex-shrink: 0;
+  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+}
+
+.footerText {
+  font-size: 11px;
+  color: #64748b;
+  text-align: center;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ===== RESPONSIVIDAD ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .companyName {
+    font-size: 15px;
+  }
+
+  .menuItem {
+    padding: 10px 12px;
+    font-size: 13.5px;
+  }
+
+  .logoIcon {
+    width: 40px;
+    height: 40px;
+  }
+}

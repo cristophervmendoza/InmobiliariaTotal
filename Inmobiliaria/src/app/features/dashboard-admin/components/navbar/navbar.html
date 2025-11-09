@@ -1,0 +1,91 @@
+<header class="header">
+  <!-- Sección izquierda -->
+  <div class="sidebarHeader">
+    <div class="logoContainer">
+      <div class="logoIcon">
+        <span-lucide name="building-2" size="20" strokeWidth="2"></span-lucide>
+      </div>
+      <div>
+        <div class="companyName">Ideal Home Realty</div>
+        <div class="companySubtitle">Panel de Administración</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="searchContainer">
+    <div class="searchWrapper">
+      <span-lucide name="search" class="searchIcon" size="18" strokeWidth="2"></span-lucide>
+      <input type="text"
+             placeholder="Buscar propiedades, clientes, reportes..."
+             class="searchInput"
+             aria-label="Buscar" />
+    </div>
+  </div>
+
+  <!-- Sección derecha -->
+  <div class="rightSection">
+    <!-- Botón de notificaciones -->
+    <button class="notificationButton" type="button" aria-label="Notificaciones">
+      <span-lucide name="bell" size="20" strokeWidth="2"></span-lucide>
+      <span class="notificationDot"></span>
+    </button>
+
+    <!-- Separador -->
+    <div class="divider"></div>
+
+    <!-- Perfil de usuario -->
+    <div class="userProfileContainer" #userMenuRoot>
+      <button (click)="toggleDropdown($event)"
+              class="userButton"
+              type="button"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="showDropdown"
+              aria-label="Usuario">
+        <!-- Avatar -->
+        <div class="avatar">
+          <span class="avatarText">{{ initials }}</span>
+        </div>
+
+        <!-- Info del usuario -->
+        <div class="userInfo">
+          <span class="userName">{{ userName }}</span>
+          <span class="userRole">{{ userRole }}</span>
+        </div>
+
+        <!-- Icono dropdown -->
+        <span class="chevronIcon" [ngClass]="{ 'chevronRotate': showDropdown }">▾</span>
+      </button>
+
+      <!-- Menú desplegable -->
+      <div class="dropdownMenu" *ngIf="showDropdown" role="menu" (click)="$event.stopPropagation()">
+        <div class="dropdownHeader">
+          <div class="dropdownUserName">{{ userName }}</div>
+          <div class="dropdownUserRole">{{ userRole }}</div>
+        </div>
+
+        <div class="dropdownSection">
+          <button class="dropdownItem" type="button">
+            <span-lucide name="user" size="18" strokeWidth="2"></span-lucide>
+            <span>Mi Perfil</span>
+          </button>
+
+          <button class="dropdownItem" type="button">
+            <span-lucide name="settings" size="18" strokeWidth="2"></span-lucide>
+            <span>Configuración</span>
+          </button>
+        </div>
+
+        <div class="dropdownSectionLogout">
+          <button class="dropdownItemLogout" type="button">
+            <span-lucide name="log-out" size="18" strokeWidth="2"></span-lucide>
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+
+
+
+      </div>
+    </div>
+  </div>
+</header>

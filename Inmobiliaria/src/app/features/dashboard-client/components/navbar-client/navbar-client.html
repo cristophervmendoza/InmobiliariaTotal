@@ -1,0 +1,169 @@
+<header class="header">
+  <div class="headerContainer">
+    <div class="headerContent">
+
+      <!-- Navegación Desktop -->
+      <nav class="navDesktop">
+        <div *ngFor="let section of menuSections" class="navSection">
+          <div class="navItems">
+            <div *ngFor="let item of section.items" class="navItemWrapper">
+              <!-- Item sin dropdown -->
+              <a *ngIf="!item.subItems"
+                 [routerLink]="item.path"
+                 routerLinkActive="navLinkActive"
+                 class="navLink">
+                {{ item.name }}
+              </a>
+
+              <!-- Item con dropdown -->
+              <div *ngIf="item.subItems"
+                   class="navDropdownWrapper"
+                   [class.open]="openDropdown === item.name"
+                   (mouseenter)="openMenu(item.name)"
+                   (mouseleave)="closeMenu()">
+                <button class="navLink navDropdownToggle"
+                        type="button"
+                        (click)="toggleDropdown(item.name)">
+                  <span>{{ item.name }}</span>
+                  <span class="chevronIcon" [ngClass]="{ 'chevronRotate': openDropdown === item.name }">▾</span>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="dropdownMenu" *ngIf="openDropdown === item.name">
+                  <a *ngFor="let subItem of item.subItems"
+                     [routerLink]="subItem.path"
+                     class="dropdownItem">
+                    <span-lucide [name]="subItem.icon"
+                                 class="dropdownIcon"
+                                 size="18"
+                                 strokeWidth="2"></span-lucide>
+                    <span class="dropdownText">{{ subItem.name }}</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Right: Notificaciones + Usuario (solo desktop) -->
+      <div class="rightActions">
+        <button class="notificationButton"
+                type="button"
+                [class.hasNotifications]="notificationCount > 0"
+                aria-label="Notificaciones">
+          <span-lucide name="bell" size="20" strokeWidth="2"></span-lucide>
+          <span class="badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+        </button>
+
+        <div class="userMenuContainer" #userMenuRoot>
+          <button (click)="toggleUserMenu($event)"
+                  class="userButton"
+                  type="button"
+                  aria-haspopup="menu"
+                  [attr.aria-expanded]="isUserMenuOpen">
+            <span-lucide name="user" size="20" strokeWidth="2"></span-lucide>
+            <span class="userName">{{ userName }}</span>
+            <span class="chevronIcon" [ngClass]="{ 'chevronRotate': isUserMenuOpen }">▾</span>
+          </button>
+
+          <div class="userDropdown" *ngIf="isUserMenuOpen" (click)="$event.stopPropagation()">
+            <a routerLink="/profile" class="dropdownItem">
+              <span-lucide name="user" size="18" strokeWidth="2"></span-lucide>
+              <span class="dropdownText">Mi Perfil</span>
+            </a>
+            <a routerLink="/settings" class="dropdownItem">
+              <span-lucide name="settings" size="18" strokeWidth="2"></span-lucide>
+              <span class="dropdownText">Configuración</span>
+            </a>
+            <div class="dropdownDivider"></div>
+            <button class="dropdownItemLogout" type="button" (click)="logout()">
+              <span-lucide name="log-out" size="18" strokeWidth="2"></span-lucide>
+              <span class="dropdownText">Cerrar Sesión</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón Menú Mobile -->
+      <button (click)="toggleMenu()" class="menuButton" aria-label="Menú">
+        <span-lucide [name]="isMenuOpen ? 'x' : 'menu'" size="28" strokeWidth="2"></span-lucide>
+      </button>
+    </div>
+  </div>
+
+  <!-- Overlay Mobile -->
+  <div class="mobileOverlay" *ngIf="isMenuOpen" (click)="toggleMenu()"></div>
+
+  <!-- Menú Mobile -->
+  <div class="mobileMenu" *ngIf="isMenuOpen" (click)="$event.stopPropagation()">
+    <div class="mobileHeader">
+      <div class="mobileUser">
+        <div class="mobileAvatar">
+          <span-lucide name="user" size="20"></span-lucide>
+        </div>
+        <div class="mobileUserInfo">
+          <span class="mobileUserName">{{ userName }}</span>
+          <span class="mobileUserStatus">Conectado</span>
+        </div>
+      </div>
+      <button class="mobileClose" type="button" (click)="toggleMenu()">
+        <span-lucide name="x" size="24"></span-lucide>
+      </button>
+    </div>
+
+    <nav class="mobileNav">
+      <!-- Items -->
+      <div *ngFor="let section of menuSections" class="mobileSection">
+        <div *ngFor="let item of section.items">
+          <!-- Sin subitems -->
+          <a *ngIf="!item.subItems"
+             [routerLink]="item.path"
+             class="mobileNavLink"
+             (click)="closeMenu()">
+            <span>{{ item.name }}</span>
+            <span-lucide name="chevron-right" size="18"></span-lucide>
+          </a>
+
+          <!-- Con subitems -->
+          <div *ngIf="item.subItems" class="mobileDropdown">
+            <button class="mobileNavLink mobileDropdownToggle"
+                    type="button"
+                    (click)="toggleMobileDropdown(item.name)">
+              <span>{{ item.name }}</span>
+              <span class="chevronIcon" [ngClass]="{ 'chevronRotate': mobileOpenDropdown === item.name }">▾</span>
+            </button>
+
+            <div *ngIf="mobileOpenDropdown === item.name" class="mobileSubItems">
+              <a *ngFor="let subItem of item.subItems"
+                 [routerLink]="subItem.path"
+                 class="mobileSubItem"
+                 (click)="closeMenu()">
+                <span-lucide [name]="subItem.icon" size="18" strokeWidth="2"></span-lucide>
+                <span>{{ subItem.name }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mobileDivider"></div>
+
+      <!-- Acciones de usuario -->
+      <a routerLink="/profile" class="mobileNavLinkIcon" (click)="closeMenu()">
+        <span-lucide name="user" size="20" strokeWidth="2"></span-lucide>
+        <span>Mi Perfil</span>
+      </a>
+      <a routerLink="/settings" class="mobileNavLinkIcon" (click)="closeMenu()">
+        <span-lucide name="settings" size="20" strokeWidth="2"></span-lucide>
+        <span>Configuración</span>
+      </a>
+      <button class="mobileLogout" type="button" (click)="logout()">
+        <span-lucide name="log-out" size="20" strokeWidth="2"></span-lucide>
+        <span>Cerrar Sesión</span>
+      </button>
+
+
+    </nav>
+  </div>
+</header>

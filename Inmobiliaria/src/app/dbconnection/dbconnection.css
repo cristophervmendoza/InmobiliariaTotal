@@ -1,0 +1,38 @@
+/* src/app/shared/components/dbconnection/dbconnection.component.css */
+.dbconn {
+  padding: 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.actions {
+  margin: 0.5rem 0 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.result {
+  white-space: pre-wrap;
+  border-radius: 6px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  background: #fafafa;
+}
+
+  .result.ok {
+    border-color: #22c55e;
+    background: #f0fff4;
+  }
+
+  .result.error {
+    border-color: #ef4444;
+    background: #fff1f2;
+  }
+
+.hint {
+  color: #666;
+  font-size: 0.9rem;
+}

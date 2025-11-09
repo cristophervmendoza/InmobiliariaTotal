@@ -1,0 +1,820 @@
+/* ===== CONTENEDOR PRINCIPAL ===== */
+/* Contenedor raíz del componente - ocupa 100% del ancho y mínimo 100vh de altura */
+.seUnAsesor {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Color de fondo gris claro */
+}
+
+/* Contenedor máximo para mantener ancho consistente en pantallas grandes */
+.container {
+  max-width: 1400px; /* Ancho máximo de 1400px */
+  margin: 0 auto; /* Centra el contenedor */
+  padding: 0 48px; /* Espaciado interno horizontal */
+}
+
+/* ===== HERO SECTION ===== */
+/* Sección superior con fondo degradado - impacto visual */
+.hero {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); /* Gradiente cyan-azul */
+  padding: 100px 0 80px; /* Espacio interior vertical */
+  position: relative; /* Para usar ::before como decoración */
+  overflow: hidden; /* Oculta elementos que se salen del contenedor */
+}
+
+  /* Decoración de fondo - efecto visual elegante con radial-gradient */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  }
+
+/* Contenido del hero - encima del fondo decorativo */
+.heroContent {
+  position: relative;
+  z-index: 2; /* Aparece encima del ::before */
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* Título principal grande */
+.heroTitle {
+  font-size: 56px;
+  font-weight: 800; /* Muy pesado */
+  color: white;
+  margin: 0 0 20px 0;
+  line-height: 1.2; /* Altura de línea compacta */
+}
+
+/* Subtítulo descriptivo */
+.heroSubtitle {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.95); /* Blanco casi transparente */
+  margin: 0 0 60px 0;
+  line-height: 1.6;
+}
+
+/* ===== ESTADÍSTICAS ===== */
+/* Grid de 3 columnas para mostrar estadísticas clave */
+.statsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
+  gap: 32px;
+  margin-top: 60px;
+}
+
+/* Tarjetas individuales de estadísticas */
+.stat {
+  background: rgba(255, 255, 255, 0.15); /* Blanco semi-transparente */
+  backdrop-filter: blur(10px); /* Efecto glassmorphism */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 32px 24px;
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.3s ease; /* Animación suave */
+}
+
+  /* Efecto hover - levanta la tarjeta */
+  .stat:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-4px); /* Sube 4px */
+  }
+
+  .stat svg {
+    margin-bottom: 16px;
+  }
+
+/* Número grande de estadística */
+.statNumber {
+  font-size: 42px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+/* Etiqueta de la estadística */
+.statLabel {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+/* Grid de 2 columnas: formulario + sidebar */
+.content {
+  display: grid;
+  grid-template-columns: 1fr 380px; /* Columna flexible + ancho fijo */
+  gap: 48px;
+  padding: 80px 0;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar con información adicional */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* Espacio entre cards del sidebar */
+}
+
+/* ===== FORMULARIO ===== */
+/* Contenedor del formulario con fondo blanco */
+.form {
+  background: white;
+  border-radius: 20px;
+  padding: 60px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04); /* Sombra sutil */
+  border: 1px solid #f1f5f9;
+}
+
+/* Mensaje de éxito o error */
+.message {
+  padding: 20px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  font-weight: 600;
+  font-size: 16px;
+  animation: slideDown 0.4s ease; /* Aparece desde arriba */
+}
+
+/* Animación de deslizamiento para mensajes */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilo para mensaje de éxito - verde */
+.messageSuccess {
+  background: #d1fae5;
+  color: #065f46;
+  border-left: 4px solid #10b981;
+}
+
+/* Estilo para mensaje de error - rojo */
+.messageError {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border-left: 4px solid #ef4444;
+}
+
+/* ===== SECCIONES ===== */
+/* Espacio entre secciones del formulario */
+.section {
+  margin-bottom: 48px;
+}
+
+  .section:last-of-type {
+    margin-bottom: 0;
+  }
+
+/* Encabezado de sección con icono y título */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f1f5f9; /* Línea separadora */
+}
+
+/* Título de la sección */
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* ===== FORM GRID ===== */
+/* ✅ OPTIMIZADO: Grid flexible que se adapta mejor */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
+  gap: 24px;
+  align-items: start; /* ✅ NUEVO: Alinea items al inicio */
+}
+
+/* Clase para que un campo ocupe ambas columnas */
+.fullWidth {
+  grid-column: 1 / -1; /* -1 significa la última columna */
+}
+
+/* Grupo de formulario individual */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Etiqueta del campo */
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Input y textarea - estilos base */
+.input,
+.textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #0f172a;
+  background-color: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  box-sizing: border-box; /* ✅ NUEVO: Asegura que padding está incluido en width */
+}
+
+/* ✅ OPTIMIZADO: Inputs numéricos - tamaño consistente */
+input[type="number"] {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 14px;
+  box-sizing: border-box; /* ✅ NUEVO: Evita overflow */
+}
+
+/* ✅ NUEVO: Select mejorado */
+select.input {
+  appearance: none; /* Remove default arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Contenedor relativo para iconos en inputs */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Icono dentro del input */
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  color: #0891b2;
+  pointer-events: none; /* No interfiere con el click */
+}
+
+/* Input con icono - aumenta padding izquierdo */
+.inputWrapper .input {
+  padding-left: 44px;
+}
+
+/* Estado focus - campos activos */
+.input:focus,
+.textarea:focus,
+select.input:focus {
+  background-color: white;
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1); /* Halo azul */
+}
+
+/* Clase para mostrar error en campo */
+.inputError {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* Textarea - área de texto grande */
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+/* Contador de caracteres */
+.charCounter {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: right;
+}
+
+/* Mensaje de error pequeño */
+.error {
+  font-size: 12px;
+  color: #ef4444;
+  display: block;
+  margin-top: -4px;
+}
+
+/* Bloque de error grande */
+.errorBlock {
+  display: block;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+
+/* ===== UPLOAD CV ===== */
+/* Etiqueta para drag & drop */
+.uploadLabel {
+  display: block;
+  cursor: pointer;
+}
+
+/* Input de archivo oculto */
+.uploadInput {
+  display: none;
+}
+
+/* Área de carga - zona donde arrastrar archivo */
+.uploadContent {
+  border: 2px dashed #0891b2;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  background-color: #f0f9ff;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Efecto hover en área de upload */
+.uploadLabel:hover .uploadContent {
+  background-color: #e0f2fe;
+  border-color: #06b6d4;
+}
+
+.uploadText {
+  font-size: 16px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.uploadHint {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* Archivo cargado - muestra nombre del CV */
+.cvFile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f0f9ff;
+  border: 1px solid #06b6d4;
+  border-radius: 10px;
+  margin-top: 12px;
+  color: #0891b2;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Botón para eliminar CV */
+.removeCv {
+  margin-left: auto;
+  background: #fee2e2;
+  border: none;
+  border-radius: 6px;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+  .removeCv:hover {
+    background: #fecaca;
+    color: #dc2626;
+  }
+
+/* ===== TÉRMINOS ===== */
+/* Contenedor para checkbox de términos */
+.termsContainer {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f0f9ff;
+  border-radius: 12px;
+  border-left: 4px solid #0891b2;
+}
+
+/* Etiqueta del checkbox */
+.termsLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Checkbox personalizado */
+.checkbox {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: #0891b2; /* Color cuando está checkeado */
+}
+
+/* Links en términos */
+.termsLabel a {
+  color: #0891b2;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+  .termsLabel a:hover {
+    text-decoration: underline;
+  }
+
+/* ===== BOTONES ===== */
+/* Contenedor de botones de acción */
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+/* Botones principal y secundario */
+.buttonPrimary,
+.buttonSecondary {
+  padding: 14px 32px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+/* Botón principal - acción importante */
+.buttonPrimary {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  color: white;
+}
+
+  .buttonPrimary:hover:not(.buttonDisabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(8, 145, 178, 0.3);
+  }
+
+  .buttonPrimary:active {
+    transform: translateY(0);
+  }
+
+/* Botón secundario - acción menos importante */
+.buttonSecondary {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+  .buttonSecondary:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+/* Clase para desabilitar botones */
+.buttonDisabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+/* ===== SIDEBAR ===== */
+/* Card individual del sidebar */
+.sidebarCard {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+}
+
+/* Encabezado de card con gradiente */
+.cardHeader {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+/* Título del card */
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== BENEFICIOS ===== */
+/* Lista de beneficios */
+.benefitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Item individual de beneficio */
+.benefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+  .benefit:last-child {
+    border-bottom: none;
+  }
+
+  .benefit svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+.benefitTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.benefitText {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ===== REQUISITOS ===== */
+/* Lista de requisitos */
+.requirementsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+  /* Item de requisito */
+  .requirementsList li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    color: #475569;
+  }
+
+    .requirementsList li:last-child {
+      border-bottom: none;
+    }
+
+  .requirementsList svg {
+    flex-shrink: 0;
+  }
+
+/* ===== TIMELINE ===== */
+/* Contenedor de timeline del proceso de selección */
+.timeline {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+  /* Línea vertical que conecta los pasos */
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 39px; /* Posición del círculo */
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e2e8f0;
+  }
+
+/* Item del timeline */
+.timelineItem {
+  display: flex;
+  gap: 20px;
+  padding: 16px 0;
+  position: relative;
+  padding-left: 0;
+}
+
+/* Círculo numerado del paso */
+.timelineNumber {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  font-size: 16px;
+  z-index: 1; /* Encima de la línea */
+}
+
+/* Contenido del paso */
+.timelineContent {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.timelineTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.timelineText {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ===== RESPONSIVIDAD ===== */
+/* Pantallas medianas - tablet */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 32px;
+  }
+
+  /* Grid a 1 columna en tablets */
+  .content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .statsContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pantallas pequeñas - móvil */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 24px;
+  }
+
+  .heroContent {
+    padding: 0 24px;
+  }
+
+  /* Título más pequeño en móvil */
+  .heroTitle {
+    font-size: 36px;
+  }
+
+  .heroSubtitle {
+    font-size: 16px;
+    margin-bottom: 40px;
+  }
+
+  .statsContainer {
+    gap: 20px;
+  }
+
+  .stat {
+    padding: 24px 16px;
+  }
+
+  .statNumber {
+    font-size: 32px;
+  }
+
+  .statLabel {
+    font-size: 14px;
+  }
+
+  /* Formulario con menos padding */
+  .form {
+    padding: 32px 24px;
+  }
+
+  /* Encabezado de sección en columna */
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .sectionTitle {
+    font-size: 20px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .fullWidth {
+    grid-column: 1;
+  }
+
+  .uploadContent {
+    padding: 40px 24px;
+  }
+
+  /* Botones en columna en móvil */
+  .formActions {
+    flex-direction: column;
+    margin-top: 32px;
+  }
+
+  .buttonPrimary,
+  .buttonSecondary {
+    width: 100%;
+  }
+
+  .sidebarCard {
+    border-radius: 12px;
+  }
+
+  .cardHeader {
+    padding: 16px;
+  }
+
+  .cardTitle {
+    font-size: 16px;
+  }
+
+  .benefit {
+    padding: 16px;
+  }
+
+  .requirementsList li {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .termsContainer {
+    padding: 16px;
+  }
+
+  .termsLabel {
+    font-size: 13px;
+  }
+
+  .timeline {
+    padding: 16px;
+  }
+
+    .timeline::before {
+      left: 19px;
+    }
+
+  .timelineNumber {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .timelineTitle {
+    font-size: 13px;
+  }
+
+  .timelineText {
+    font-size: 12px;
+  }
+}

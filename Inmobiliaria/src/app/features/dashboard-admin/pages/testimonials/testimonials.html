@@ -1,0 +1,217 @@
+<div class="container">
+  <div class="pageHeader" style="margin-bottom: 16px;">
+    <div>
+      <h1 class="pageTitle">Testimonios</h1>
+      <p class="pageSubtitle">Gestiona los testimonios de clientes y su publicación</p>
+    </div>
+    <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="abrirNuevo()">
+      <span-lucide name="plus" size="18"></span-lucide>
+      <span class="label">Nuevo</span>
+    </button>
+  </div>
+
+  <!-- Métricas -->
+  <div class="estadisticasGrid">
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Total</p>
+          <h2 class="valor">{{ total }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#06b6d4' }">
+          <span-lucide name="message-square" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Publicados</p>
+          <h2 class="valor">{{ publicados }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#16a34a' }">
+          <span-lucide name="check-circle-2" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Pendientes</p>
+          <h2 class="valor">{{ pendientes }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#f59e0b' }">
+          <span-lucide name="loader-2" size="24" strokeWidth="2.5" class="iconoRotando"></span-lucide>
+        </div>
+      </div>
+    </div>
+    <div class="tarjeta">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">Promedio</p>
+          <h2 class="valor">{{ promedio }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': '#8b5cf6' }">
+          <span-lucide name="star" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="selector" style="margin-bottom: 16px;">
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;gap:8px;">
+      <span-lucide name="search" size="18" class="icono"></span-lucide>
+      <input type="text" placeholder="Buscar por cliente, contenido o propiedad..."
+             [(ngModel)]="filtroTexto"
+             style="width:100%;border:none;outline:none;background:transparent;color:#0f172a;" />
+    </div>
+
+    <select class="opcion" style="background:#fff;border:1px solid #f1f5f9;"
+            [(ngModel)]="filtroEstado">
+      <option value="Todos">Todos</option>
+      <option value="Publicado">Publicado</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Oculto">Oculto</option>
+    </select>
+
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;gap:8px;">
+      <span class="label" style="color:#64748b;">Mín. estrellas</span>
+      <input type="number" min="0" max="5" [(ngModel)]="filtroValorMin"
+             style="width:80px;border:none;outline:none;background:transparent;color:#0f172a;text-align:center;" />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="tablaWrapper" *ngIf="!loading && listaFiltrada.length; else estadoTpl">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th class="headerCell">Cliente</th>
+          <th class="headerCell">Contenido</th>
+          <th class="headerCell">Valoración</th>
+          <th class="headerCell">Fecha</th>
+          <th class="headerCell">Propiedad</th>
+          <th class="headerCell">Estado</th>
+          <th class="headerCell">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fila" *ngFor="let t of listaFiltrada">
+          <td class="celda">{{ t.cliente }}</td>
+          <td class="celda"><span class="contenidoCorto" title="{{ t.contenido }}">{{ t.contenido }}</span></td>
+          <td class="celda">
+            <span class="rating">
+              <span-lucide *ngFor="let f of estrellas(t.valoracion)" name="star" size="16"
+                           [style.color]="f ? '#f59e0b' : '#cbd5e1'"></span-lucide>
+            </span>
+          </td>
+          <td class="celda">{{ t.fecha }}</td>
+          <td class="celda">{{ t.propiedad || '-' }}</td>
+          <td class="celda">
+            <span [class]="claseEstado(t.estado)">{{ t.estado }}</span>
+          </td>
+          <td class="celda" style="display:flex;gap:8px;">
+            <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="abrirEditar(t)" title="Editar">
+              <span-lucide name="pencil" size="16"></span-lucide>
+            </button>
+            <select class="opcion" style="background:#fff;border:1px solid #e2e8f0;"
+                    [ngModel]="t.estado" (ngModelChange)="cambiarEstado(t.id, $event)">
+              <option value="Publicado">Publicado</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Oculto">Oculto</option>
+            </select>
+            <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;color:#b91c1c;" (click)="eliminar(t.id)" title="Eliminar">
+              <span-lucide name="trash-2" size="16"></span-lucide>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #estadoTpl>
+    <div *ngIf="loading" class="contenedorVacio">
+      <p class="mensajeVacio">Cargando testimonios...</p>
+    </div>
+    <div *ngIf="!loading && !listaFiltrada.length" class="contenedorVacio">
+      <p class="mensajeVacio">No se encontraron testimonios con los filtros actuales</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal Form -->
+  <div class="overlay" *ngIf="mostrarForm">
+    <div class="modal" style="grid-template-columns:1fr;">
+      <div class="contenido" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h2 class="pageTitle" style="font-size:20px;margin:0;">{{ editando ? 'Editar Testimonio' : 'Nuevo Testimonio' }}</h2>
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarForm()">✕</button>
+        </div>
+
+        <div class="selector" style="flex-direction:column;gap:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Cliente *</label>
+                <input type="text" [(ngModel)]="form.cliente" required
+                       style="width:100%;border:none;outline:none;background:transparent;" />
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Fecha *</label>
+                <input type="date" [(ngModel)]="form.fecha" required
+                       style="width:100%;border:none;outline:none;background:transparent;" />
+              </div>
+            </div>
+          </div>
+
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Contenido *</label>
+              <textarea rows="3" [(ngModel)]="form.contenido" required
+                        placeholder="Escribe el testimonio del cliente..."
+                        style="width:100%;border:none;outline:none;background:transparent;"></textarea>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Valoración</label>
+                <input type="number" min="1" max="5" [(ngModel)]="form.valoracion"
+                       style="width:100%;border:none;outline:none;background:transparent;" />
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Propiedad</label>
+                <input type="text" [(ngModel)]="form.propiedad"
+                       style="width:100%;border:none;outline:none;background:transparent;" />
+              </div>
+            </div>
+          </div>
+
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Estado</label>
+              <select [(ngModel)]="form.estado" style="width:100%;border:none;outline:none;background:transparent;">
+                <option value="Publicado">Publicado</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Oculto">Oculto</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarForm()">Cancelar</button>
+            <button class="opcion" style="background:#e0f2fe;border:1px solid #a5f3fc;color:#0369a1;"
+                    (click)="guardarForm()">
+              {{ editando ? 'Guardar Cambios' : 'Registrar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

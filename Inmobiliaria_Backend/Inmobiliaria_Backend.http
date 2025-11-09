@@ -1,0 +1,6 @@
+@Inmobiliaria_Backend_HostAddress = http://localhost:5115
+
+GET {{Inmobiliaria_Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,193 @@
+<div class="portada">
+  <!-- HERO -->
+  <section class="hero">
+    <video class="heroVideo" autoplay muted loop playsinline preload="auto">
+      <source src="https://cdn.pixabay.com/video/2024/06/05/215424_large.mp4" type="video/mp4">
+    </video>
+    <div class="heroOverlay"></div>
+    <div class="heroContent">
+      <h1 class="heroTitle">Encuentra el Hogar de tus Sueños</h1>
+      <p class="heroSubtitle">Miles de propiedades esperando por ti. Comienza tu búsqueda ahora.</p>
+
+      <!-- Buscador -->
+      <div class="searchBox">
+        <div class="searchField">
+          <span-lucide name="map-pin" size="20" class="searchIcon"></span-lucide>
+          <input type="text"
+                 placeholder="Ubicación (ej: San Isidro, Miraflores)"
+                 [(ngModel)]="searchLocation"
+                 class="searchInput" />
+        </div>
+
+        <div class="searchField">
+          <span-lucide name="home" size="20" class="searchIcon"></span-lucide>
+          <select [(ngModel)]="searchType" class="searchSelect">
+            <option value="">Tipo de propiedad</option>
+            <option value="casa">Casa</option>
+            <option value="departamento">Departamento</option>
+            <option value="oficina">Oficina</option>
+            <option value="terreno">Terreno</option>
+          </select>
+        </div>
+
+        <div class="searchFieldGroup">
+          <div class="searchFieldSmall">
+            <select [(ngModel)]="searchCurrency"
+                    (ngModelChange)="handleCurrencyChange($event)"
+                    class="searchSelectSmall">
+              <option value="soles">S/</option>
+              <option value="dolares">$</option>
+            </select>
+          </div>
+
+          <div class="searchFieldLarge">
+            <select [(ngModel)]="searchPriceRange" class="searchSelect">
+              <option *ngFor="let range of priceRanges[searchCurrency]" [value]="range.value">
+                {{ range.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <button class="searchButton" (click)="handleSearch()">
+          <span-lucide name="search" size="20"></span-lucide>
+          <span>Buscar</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ESTADÍSTICAS -->
+  <section class="statsSection">
+    <div class="container">
+      <div class="statsGrid">
+        <div *ngFor="let stat of stats" class="statCard">
+          <div class="statIcon">
+            <span-lucide [name]="stat.icon" size="32" strokeWidth="2"></span-lucide>
+          </div>
+          <div class="statValue">{{ stat.value }}</div>
+          <div class="statLabel">{{ stat.label }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESTACADAS -->
+  <section class="featuredSection">
+    <div class="container">
+      <div class="sectionHeader">
+        <h2 class="sectionTitle">Propiedades Destacadas</h2>
+        <p class="sectionSubtitle">Descubre nuestras mejores opciones disponibles</p>
+      </div>
+
+      <div class="propertiesGrid">
+        <div *ngFor="let property of featuredProperties"
+             class="propertyCard"
+             (click)="goTo('/properties/' + property.id)">
+          <div class="propertyImage">
+            <img [src]="property.imageUrl" [alt]="property.title" />
+            <span *ngIf="property.featured" class="featuredBadge">Destacado</span>
+          </div>
+          <div class="propertyContent">
+            <h3 class="propertyTitle">{{ property.title }}</h3>
+            <div class="propertyLocation">
+              <span-lucide name="map-pin" size="16"></span-lucide>
+              <span>{{ property.location }}</span>
+            </div>
+            <div class="propertyDetails">
+              <span>{{ property.bedrooms }} hab.</span>
+              <span>{{ property.bathrooms }} baños</span>
+              <span>{{ property.area }}</span>
+            </div>
+            <div class="propertyFooter">
+              <div class="propertyPrice">{{ property.price }}</div>
+              <button class="viewButton" (click)="$event.stopPropagation(); goTo('/properties/' + property.id)">
+                Ver detalles
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sectionCTA">
+        <button class="ctaButton" (click)="goTo('/properties')">
+          Ver todas las propiedades
+          <span-lucide name="arrow-right" size="20"></span-lucide>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFICIOS -->
+  <section class="benefitsSection">
+    <div class="container">
+      <div class="sectionHeader">
+        <h2 class="sectionTitle">¿Por Qué Elegirnos?</h2>
+        <p class="sectionSubtitle">Compromiso, experiencia y resultados garantizados</p>
+      </div>
+
+      <div class="benefitsGrid">
+        <div *ngFor="let benefit of benefits" class="benefitCard">
+          <div class="benefitIcon">
+            <span-lucide [name]="benefit.icon" size="28" strokeWidth="2"></span-lucide>
+          </div>
+          <h3 class="benefitTitle">{{ benefit.title }}</h3>
+          <p class="benefitDescription">{{ benefit.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIOS -->
+  <section class="testimonialsSection">
+    <div class="container">
+      <div class="sectionHeader">
+        <h2 class="sectionTitle">Lo Que Dicen Nuestros Clientes</h2>
+        <p class="sectionSubtitle">Historias reales de personas que encontraron su hogar ideal</p>
+      </div>
+
+      <div class="testimonialsGrid">
+        <div *ngFor="let t of testimonials" class="testimonialCard">
+          <div class="testimonialHeader">
+            <div class="testimonialAvatar">
+              <img *ngIf="t.imageUrl; else initials"
+                   [src]="t.imageUrl"
+                   [alt]="t.name"
+                   loading="lazy" />
+              <ng-template #initials>{{ t.avatar }}</ng-template>
+            </div>
+
+            <div class="testimonialInfo">
+              <div class="testimonialName">{{ t.name }}</div>
+              <div class="testimonialRole">{{ t.role }}</div>
+            </div>
+
+            <div class="testimonialRating">
+              <span-lucide *ngFor="let i of arrayFrom(t.rating)" name="star" size="16" [attr.fill]="'#fbbf24'" color="#fbbf24"></span-lucide>
+            </div>
+          </div>
+
+          <p class="testimonialText">{{ t.text }}</p>
+
+          <figure class="testimonialProperty" *ngIf="t.propertyImage">
+            <img [src]="t.propertyImage" [alt]="'Propiedad de ' + t.name" loading="lazy" />
+            <figcaption class="testimonialPropertyCaption">Propiedad destacada</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CTA FINAL -->
+  <section class="ctaSection">
+    <div class="ctaContent">
+      <h2 class="ctaTitle">¿Listo para Encontrar tu Hogar Ideal?</h2>
+      <p class="ctaSubtitle">Comienza tu búsqueda hoy y déjanos ayudarte en cada paso del camino</p>
+      <div class="ctaButtons">
+        <button class="ctaPrimary" (click)="goTo('/properties')">Explorar Propiedades</button>
+        <button class="ctaSecondary" (click)="goTo('/beasesor')">Contactar Asesor</button>
+      </div>
+    </div>
+  </section>
+</div>

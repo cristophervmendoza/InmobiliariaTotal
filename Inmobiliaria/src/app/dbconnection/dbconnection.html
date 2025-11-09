@@ -1,0 +1,18 @@
+<!-- src/app/shared/components/dbconnection/dbconnection.component.html -->
+<section class="dbconn">
+  <h1>Probar conexión al backend</h1>
+
+  <div class="actions">
+    <button (click)="probarConexion()" [disabled]="status==='loading'">
+      {{ status === 'loading' ? 'Probando...' : 'Probar conexión' }}
+    </button>
+  </div>
+
+  <div class="result" [class.ok]="status==='ok'" [class.error]="status==='error'">
+    <p>{{ message }}</p>
+  </div>
+
+  <p class="hint">
+    Endpoint: <code>{{ testEndpoint }}</code> — ajusta este path a tu API real.
+  </p>
+</section>

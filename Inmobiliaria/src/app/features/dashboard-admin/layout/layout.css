@@ -1,0 +1,24 @@
+/* features/dashboard-admin/layout/layout.css */
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #FFFF;
+  color: #000000;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100dvh - 64px);
+}
+
+.admin-content {
+  padding: 24px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+}

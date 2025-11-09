@@ -1,0 +1,123 @@
+<div class="ofrecerInmueble">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="heroContent container">
+      <h1 class="heroTitle">Ofrece tu Inmueble</h1>
+      <p class="heroSubtitle">
+        Publica tu propiedad y encuentra el comprador ideal con nuestra ayuda profesional
+      </p>
+
+      <div class="statsContainer">
+        <div class="stat">
+          <i-lucide name="home" [size]="40" color="#fbbf24"></i-lucide>
+          <div class="statNumber">500+</div>
+          <div class="statLabel">Propiedades Vendidas</div>
+        </div>
+        <div class="stat">
+          <i-lucide name="users" [size]="40" color="#fbbf24"></i-lucide>
+          <div class="statNumber">1000+</div>
+          <div class="statLabel">Clientes Satisfechos</div>
+        </div>
+        <div class="stat">
+          <i-lucide name="clock" [size]="40" color="#fbbf24"></i-lucide>
+          <div class="statNumber">30</div>
+          <div class="statLabel">Días Promedio de Venta</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMULARIO -->
+  <section class="formSection">
+    <div class="container">
+      <div *ngIf="submitMessage; else formTpl" class="message messageSuccess">
+        <i-lucide name="check"></i-lucide>
+        {{ submitMessage }}
+      </div>
+
+      <ng-template #formTpl>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+          <h2 class="stepTitle">Información de tu Propiedad</h2>
+
+          <div class="formGroup">
+            <label class="label">Tipo de Propiedad *</label>
+            <select formControlName="propertyType" class="input" [class.inputError]="f.propertyType.touched && f.propertyType.invalid">
+              <option value="">Selecciona un tipo</option>
+              <option value="casa">Casa</option>
+              <option value="departamento">Departamento</option>
+              <option value="terreno">Terreno</option>
+              <option value="otro">Otro</option>
+            </select>
+            <span class="error" *ngIf="f.propertyType.touched && f.propertyType.hasError('required')">
+              Selecciona un tipo
+            </span>
+          </div>
+
+          <div class="formGroup">
+            <label class="label">Dirección *</label>
+            <input type="text"
+                   formControlName="fullAddress"
+                   placeholder="Ej: Av. Los Pinos 123"
+                   class="input"
+                   [class.inputError]="f.fullAddress.touched && f.fullAddress.invalid" />
+            <span class="error" *ngIf="f.fullAddress.touched && f.fullAddress.hasError('required')">
+              La dirección es requerida
+            </span>
+          </div>
+
+          <div class="formGroup">
+            <label class="label">Distrito *</label>
+            <input type="text"
+                   formControlName="district"
+                   placeholder="Ej: San Isidro"
+                   class="input"
+                   [class.inputError]="f.district.touched && f.district.invalid" />
+            <span class="error" *ngIf="f.district.touched && f.district.hasError('required')">
+              El distrito es requerido
+            </span>
+          </div>
+
+          <div class="formGroup">
+            <label class="label">Descripción *</label>
+            <textarea formControlName="description"
+                      rows="5"
+                      placeholder="Describe brevemente tu propiedad..."
+                      class="textarea"
+                      [class.inputError]="f.description.touched && f.description.invalid"></textarea>
+            <span class="error" *ngIf="f.description.touched && f.description.hasError('required')">
+              La descripción es requerida
+            </span>
+          </div>
+
+          <div class="formGroup">
+            <label class="label">Foto de la Propiedad *</label>
+
+            <label class="uploadArea">
+              <input type="file" class="uploadInput" accept="image/jpeg,image/png" (change)="onFileChange($event)" />
+              <div class="uploadContent">
+                <i-lucide name="upload" [size]="40" color="#0891b2"></i-lucide>
+                <p class="uploadText">Haz clic o arrastra una foto aquí</p>
+                <span class="uploadHint">Formatos: JPG, PNG (máx. 5MB)</span>
+              </div>
+            </label>
+
+            <span class="error" *ngIf="f.image.touched && f.image.hasError('required')">Agrega al menos una foto</span>
+            <span class="error" *ngIf="f.image.errors?.['type']">Solo se aceptan archivos JPG o PNG</span>
+            <span class="error" *ngIf="f.image.errors?.['size']">El archivo no debe superar los 5MB</span>
+
+            <div class="previewItem" *ngIf="imagePreview as preview">
+              <img [src]="preview" alt="Preview" />
+              <button type="button" class="removeImageButton" (click)="removeImage()">
+                <i-lucide name="x" [size]="18"></i-lucide>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="buttonPrimary" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Enviando...' : 'Enviar' }}
+          </button>
+        </form>
+      </ng-template>
+    </div>
+  </section>
+</div>

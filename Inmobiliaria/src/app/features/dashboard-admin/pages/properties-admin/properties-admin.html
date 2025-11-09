@@ -1,0 +1,181 @@
+<div class="container">
+  <!-- Header -->
+  <div class="pageHeader">
+    <div>
+      <h1 class="pageTitle">Propiedades</h1>
+      <p class="pageSubtitle">Gestión y visualización de inmuebles del sistema</p>
+    </div>
+
+    <button class="botonExportar"
+            [disabled]="exportando || propiedadesFiltradas.length === 0"
+            (click)="handleExportar()">
+      <span-lucide *ngIf="exportando" name="loader-2" class="iconoRotando" size="20" strokeWidth="2"></span-lucide>
+      <span-lucide *ngIf="!exportando" name="file-down" size="20" strokeWidth="2"></span-lucide>
+      <span>{{ exportando ? 'Exportando...' : 'Exportar a Excel' }}</span>
+    </button>
+  </div>
+
+  <!-- Tarjetas estadísticas -->
+  <div class="estadisticasGrid">
+    <div class="tarjeta" *ngFor="let stat of estadisticas">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">{{ stat.titulo }}</p>
+          <h2 class="valor">{{ stat.valor }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': stat.color }">
+          <span-lucide [name]="stat.icon" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="selector" style="margin-bottom: 16px;">
+    <div class="opcion" style="justify-content:flex-start;background:#fff;border:1px solid #f1f5f9;">
+      <span-lucide name="search" size="18" class="icono"></span-lucide>
+      <input type="text"
+             placeholder="Buscar por título, código, distrito o tipo..."
+             [(ngModel)]="busqueda"
+             style="width:100%;border:none;outline:none;background:transparent;color:#0f172a;" />
+    </div>
+
+    <select [(ngModel)]="filtroTipo" class="opcion" style="background:#fff;border:1px solid #f1f5f9;">
+      <option value="Todos">Todos los tipos</option>
+      <option value="Casa">Casa</option>
+      <option value="Departamento">Departamento</option>
+      <option value="Terreno">Terreno</option>
+      <option value="Otro">Otro</option>
+    </select>
+
+    <select [(ngModel)]="filtroEstado" class="opcion" style="background:#fff;border:1px solid #f1f5f9;">
+      <option value="Todos">Todos los estados</option>
+      <option value="activa">Activa</option>
+      <option value="reservada">Reservada</option>
+      <option value="vendida">Vendida</option>
+      <option value="pausada">Pausada</option>
+      <option value="cerrada">Cerrada</option>
+    </select>
+  </div>
+
+  <!-- Tabla -->
+  <div class="tablaWrapper" *ngIf="!loading && propiedadesFiltradas.length; else estadoTpl">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th class="headerCell">Código</th>
+          <th class="headerCell">Título</th>
+          <th class="headerCell">Tipo</th>
+          <th class="headerCell">Precio</th>
+          <th class="headerCell">Estado</th>
+          <th class="headerCell">Distrito</th>
+          <th class="headerCell">Agente</th>
+          <th class="headerCell">Vistas</th>
+          <th class="headerCell">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fila" *ngFor="let p of propiedadesFiltradas">
+          <td class="celda">
+            <span class="badge" style="background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">{{ p.codigo }}</span>
+            <span *ngIf="p.destacada" class="badge" style="margin-left:8px;background:#fef3c7;color:#92400e;border-color:#fde68a;">
+              Destacada
+            </span>
+          </td>
+          <td class="celda">
+            <div class="contenidoCorto" title="{{ p.titulo }}">{{ p.titulo }}</div>
+            <div style="color:#64748b;font-size:12px;margin-top:4px;">
+              {{ p.area }} m² • {{ p.habitaciones }} hab • {{ p.banos }} baños
+            </div>
+          </td>
+          <td class="celda">
+            <span class="badge" style="background:#ecfeff;color:#155e75;border-color:#a5f3fc;">{{ p.tipo }}</span>
+          </td>
+          <td class="celda"><strong>{{ precioStr(p) }}</strong></td>
+          <td class="celda">
+            <span [class]="estadoClaseBadge(p.estado)">{{ p.estado | titlecase }}</span>
+          </td>
+          <td class="celda">{{ p.distrito }}</td>
+          <td class="celda">{{ p.agente }}</td>
+          <td class="celda">
+            <span class="badge" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;">{{ p.vistas }}</span>
+          </td>
+          <td class="celda">
+            <button class="opcion" style="padding:8px 10px;background:#fff;border:1px solid #e2e8f0;"
+                    title="Ver detalles" (click)="abrirDetalle(p)">
+              <span-lucide name="eye" size="18"></span-lucide>
+            </button>
+            <button class="opcion" style="padding:8px 10px;background:#fff;border:1px solid #e2e8f0;margin-left:8px;"
+                    title="Eliminar" (click)="abrirEliminar(p)">
+              <span-lucide name="trash-2" size="18"></span-lucide>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #estadoTpl>
+    <div *ngIf="loading" class="contenedorVacio">
+      <p class="mensajeVacio">Cargando propiedades...</p>
+    </div>
+    <div *ngIf="!loading && !propiedadesFiltradas.length" class="contenedorVacio">
+      <p class="mensajeVacio">No se encontraron propiedades con los filtros actuales</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal Detalle -->
+  <div class="overlay" *ngIf="modalDetalleAbierto && seleccionado as sel">
+    <div class="modal">
+      <div class="imagenContainer">
+        <img [src]="(sel.imagenes && sel.imagenes.length ? sel.imagenes[0] : '/placeholder.jpg')" [alt]="sel.titulo" class="imagen" />
+      </div>
+
+      <div class="contenido" style="padding:16px;flex-direction:column;gap:12px;">
+        <h2 class="pageTitle" style="font-size:20px;margin:0;">{{ sel.titulo }}</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span [class]="estadoClaseBadge(sel.estado)">{{ sel.estado | titlecase }}</span>
+          <span class="badge" style="background:#ecfeff;color:#155e75;border-color:#a5f3fc;">{{ sel.tipo }}</span>
+          <span class="badge" style="background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">{{ sel.codigo }}</span>
+        </div>
+
+        <div class="descripcionBox">
+          <p style="margin:0;color:#0f172a;">{{ sel.direccion }}, {{ sel.distrito }}</p>
+        </div>
+
+        <div>
+          <h3 class="titulo" style="text-transform:none;">Características</h3>
+          <div class="detallesGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <p class="celda"><strong>Área:</strong> {{ sel.area }} m²</p>
+            <p class="celda"><strong>Habitaciones:</strong> {{ sel.habitaciones }}</p>
+            <p class="celda"><strong>Baños:</strong> {{ sel.banos }}</p>
+            <p class="celda"><strong>Agente:</strong> {{ sel.agente }}</p>
+          </div>
+        </div>
+
+        <div style="font-weight:700;color:#0f172a;">{{ precioStr(sel) }}</div>
+      </div>
+
+      <div class="footer">
+        <button (click)="cerrarDetalle()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;">✖ Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Eliminar -->
+  <div class="overlay" *ngIf="modalEliminarAbierto && seleccionado as selDel">
+    <div class="modal" style="grid-template-columns:1fr;">
+      <div class="contenido" style="padding:16px;flex-direction:column;gap:12px;">
+        <h2 class="pageTitle" style="font-size:20px;margin:0;">Eliminar Propiedad</h2>
+        <p>¿Seguro que deseas eliminar la propiedad <strong>{{ selDel.titulo }}</strong> ({{ selDel.codigo }})?</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button (click)="cerrarEliminar()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;">Cancelar</button>
+          <button (click)="confirmarEliminar()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;color:#b91c1c;">
+            <span-lucide name="trash-2" size="18"></span-lucide>
+            <span class="label">Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

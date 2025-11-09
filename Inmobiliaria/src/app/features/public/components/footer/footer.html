@@ -1,0 +1,98 @@
+<footer class="footer">
+  <div class="decorativeLine"></div>
+
+  <div class="footerContainer">
+    <div class="footerGrid">
+      <!-- Columna 1: Logo y Descripción -->
+      <div class="column">
+        <div class="logoSection">
+          <div class="logoIcon">
+            <span-lucide name="building-2" size="20" strokeWidth="2"></span-lucide>
+          </div>
+          <div class="logoText">
+            <h2 class="logoTitle">Ideal Home</h2>
+            <p class="logoSubtitle">Realty</p>
+          </div>
+        </div>
+
+        <p class="description">
+          Encontramos el hogar perfecto para ti y tu familia. Más de 10 años de experiencia en el mercado inmobiliario.
+        </p>
+
+        <!-- Redes Sociales -->
+        <div class="socialSection">
+          <h3 class="socialTitle">Redes Sociales</h3>
+          <div class="socialIcons">
+            <a href="#" class="socialIcon" aria-label="Facebook">
+              <span-lucide name="facebook" size="20" strokeWidth="2"></span-lucide>
+            </a>
+            <a href="#" class="socialIcon" aria-label="Twitter">
+              <span-lucide name="twitter" size="20" strokeWidth="2"></span-lucide>
+            </a>
+            <a href="#" class="socialIcon" aria-label="Instagram">
+              <span-lucide name="instagram" size="20" strokeWidth="2"></span-lucide>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna 2: Contacto -->
+      <div class="column">
+        <h3 class="columnTitle">Contacto</h3>
+        <div class="contactList">
+          <a href="#" class="contactItem">
+            <span-lucide name="map-pin" size="20" strokeWidth="2" class="contactIcon"></span-lucide>
+            <span class="contactText">Av. Principal 123, Ciudad</span>
+          </a>
+          <a href="tel:977220220" class="contactItem">
+            <span-lucide name="phone" size="20" strokeWidth="2" class="contactIcon"></span-lucide>
+            <span class="contactTextBold">977 220 220</span>
+          </a>
+          <a href="mailto:info@idealhome.com" class="contactItem">
+            <span-lucide name="mail" size="20" strokeWidth="2" class="contactIcon"></span-lucide>
+            <span class="contactText">info@idealhome.com</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Columna 3: Entidades Financieras -->
+      <div class="column">
+        <h3 class="columnTitle">Entidades Financieras</h3>
+        <ul class="linkList">
+          <li class="linkItem" *ngFor="let entity of financialEntities">
+            <a href="#" class="link">
+              <span class="linkDot"></span>
+              {{ entity }}
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Columna 4: Menú -->
+      <div class="column">
+        <h3 class="columnTitle">Menú</h3>
+        <ul class="linkList">
+          <li class="linkItem" *ngFor="let item of menuItems">
+            <a [routerLink]="item.path" class="link">
+              <span class="linkDot"></span>
+              {{ item.name }}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footerBottom">
+      <div class="footerBottomContent">
+        <p class="copyright">
+          © 2025 Ideal Home Realty. Todos los derechos reservados.
+        </p>
+        <div class="legalLinks">
+          <a href="#" class="legalLink">Términos y Condiciones</a>
+          <a href="#" class="legalLink">Política de Privacidad</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

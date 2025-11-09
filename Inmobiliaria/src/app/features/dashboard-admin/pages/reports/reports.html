@@ -1,0 +1,89 @@
+<div class="container">
+  <div class="pageHeader">
+    <div>
+      <h1 class="pageTitle">Reportes</h1>
+      <p class="pageSubtitle">Visualiza y exporta reportes detallados del sistema</p>
+    </div>
+
+    <button class="botonExportar"
+            [disabled]="exportando || obtenerDatos().length === 0"
+            (click)="handleExportar()">
+      <span-lucide *ngIf="exportando" name="loader-2" class="iconoRotando" size="20" strokeWidth="2"></span-lucide>
+      <span-lucide *ngIf="!exportando" name="file-down" size="20" strokeWidth="2"></span-lucide>
+      <span>{{ exportando ? 'Exportando...' : 'Exportar a Excel' }}</span>
+    </button>
+  </div>
+
+  <div class="estadisticasGrid">
+    <div class="tarjeta" *ngFor="let stat of estadisticas">
+      <div class="contenido">
+        <div class="textos">
+          <p class="titulo">{{ stat.titulo }}</p>
+          <h2 class="valor">{{ stat.valor }}</h2>
+        </div>
+        <div class="iconoContainer" [ngStyle]="{ 'background-color': stat.color }">
+          <span-lucide [name]="stat.icon" size="24" strokeWidth="2.5"></span-lucide>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="selector">
+    <button *ngFor="let tipo of tipos"
+            (click)="setTipoActivo(tipo)"
+            [class.opcionActiva]="tipoActivo === tipo"
+            class="opcion">
+      <span-lucide [name]="
+          tipo === 'empleados' ? 'users' :
+          tipo === 'propiedades' ? 'building-2' :
+          tipo === 'testimonios' ? 'message-square' :
+          tipo === 'citas' ? 'calendar' : 'wrench'"
+                   size="20"
+                   [attr.strokeWidth]="tipoActivo === tipo ? 2.5 : 2"
+                   class="icono">
+      </span-lucide>
+      <span class="label">
+        {{
+ tipo === 'empleados' ? 'Empleados'
+        :  tipo === 'propiedades' ? 'Propiedades'
+        :  tipo === 'testimonios' ? 'Testimonios'
+        :  tipo === 'citas' ? 'Citas' : 'Mantenimiento'
+        }}
+      </span>
+    </button>
+  </div>
+
+  <div class="tablaWrapper" *ngIf="obtenerDatos().length; else vacioTpl">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th class="headerCell" *ngFor="let columna of obtenerColumnas()">{{ columna }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fila" *ngFor="let dato of obtenerDatos()">
+          <td class="celda" *ngFor="let columna of obtenerColumnas()">
+            <ng-container *ngIf="tipoActivo === 'testimonios' && columna.toLowerCase() === 'valoración'; else textoPlano">
+              <span class="rating">
+                <span-lucide *ngFor="let filled of getEstrellas(dato.valoracion); let i = index"
+                             name="star"
+                             size="16"
+                             [style.color]="filled ? '#f59e0b' : '#cbd5e1'">
+                </span-lucide>
+              </span>
+            </ng-container>
+            <ng-template #textoPlano>
+              {{ renderizarCelda(dato, columna) }}
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #vacioTpl>
+    <div class="contenedorVacio">
+      <p class="mensajeVacio">No hay datos disponibles para este reporte</p>
+    </div>
+  </ng-template>
+</div>

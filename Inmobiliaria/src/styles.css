@@ -1,0 +1,111 @@
+/* ========= Fuentes y variables ========= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
+
+:root {
+  /* Tipografía */
+  --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', Times, serif;
+
+  /* Colores base (light) */
+  --bg: #ffffff;
+  --fg: #0f172a;         /* slate-900 */
+  --fg-muted: #334155;   /* slate-700 */
+  --border: #e2e8f0;     /* slate-200 */
+  --primary: #0891b2;    /* cyan-700 */
+  --primary-contrast: #ffffff;
+
+  /* Espaciado y radios */
+  --radius: 12px;
+  --gap: 16px;
+
+  /* Contenedor */
+  --container: 1400px;
+}
+
+/* ========= Reset moderno ========= */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, app-root {
+  height: 100%;
+}
+
+html:focus-within { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color: var(--fg);
+  background: var(--bg);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure {
+  margin: 0;
+}
+
+/* ========= Bordes y contenedores ========= */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+/* ========= Accesibilidad: focus visible ========= */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 60%, #22d3ee);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+
+
+/* ========= Utilidades pequeñas ========= */
+.hidden { display: none !important; }
+.mute { color: var(--fg-muted); }
+.rounded { border-radius: var(--radius); }
+.border { border: 1px solid var(--border); }
+.shadow-sm { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
