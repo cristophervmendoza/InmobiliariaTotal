@@ -7,7 +7,13 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
 {
     public class AdministradorDao
     {
-        private readonly UsuarioDao _usuarioDao = new UsuarioDao();
+        private readonly UsuarioDao _usuarioDao;
+
+        public AdministradorDao(UsuarioDao usuarioDao)
+        {
+            _usuarioDao = usuarioDao; // UsuarioDao recibe IPasswordService por DI
+        }
+
 
         // Crear administrador (transacción: usuario + administrador)
         public async Task<(bool exito, string mensaje, int? idAdministrador, int? idUsuario)> CrearAdministradorAsync(Usuario usuario)

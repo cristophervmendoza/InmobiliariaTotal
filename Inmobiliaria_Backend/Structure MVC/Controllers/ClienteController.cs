@@ -2,6 +2,8 @@
 using backend_csharpcd_inmo.Structure_MVC.Models;
 using backend_csharpcd_inmo.Structure_MVC.DAO;
 using System.ComponentModel.DataAnnotations;
+using Inmobiliaria_Backend.Services;
+
 
 namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 {
@@ -12,10 +14,10 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         private readonly ClienteDao _clienteDao;
         private readonly UsuarioDao _usuarioDao;
 
-        public ClienteController()
+        public ClienteController(ClienteDao clienteDao, UsuarioDao usuarioDao)
         {
-            _clienteDao = new ClienteDao();
-            _usuarioDao = new UsuarioDao();
+            _clienteDao = clienteDao;
+            _usuarioDao = usuarioDao;
         }
 
         // POST: api/Cliente

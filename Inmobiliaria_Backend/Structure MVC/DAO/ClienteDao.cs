@@ -7,7 +7,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
 {
     public class ClienteDao
     {
-        private readonly UsuarioDao _usuarioDao = new UsuarioDao();
+        private readonly UsuarioDao _usuarioDao;
+
+        public ClienteDao(UsuarioDao usuarioDao)
+        {
+            _usuarioDao = usuarioDao; // UsuarioDao recibe IPasswordService por DI
+        }
 
         // Crear cliente (transacción: usuario + cliente)
         public async Task<(bool exito, string mensaje, int? idCliente, int? idUsuario)> CrearClienteAsync(Usuario usuario)
