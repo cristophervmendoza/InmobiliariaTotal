@@ -1,4 +1,7 @@
 // features/dashboard-admin/dashboard-admin.module.ts
+
+import { FormsModule } from '@angular/forms';
+
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -70,6 +73,7 @@ import {
     CommonModule,
     RouterModule,
     DashboardAgentRoutingModule,
+    FormsModule,
     LucideAngularModule.pick({
       Home,
       FileText,

@@ -7,6 +7,7 @@ interface MenuSection { title: string; items: MenuItem[]; }
 
 @Component({
   selector: 'app-sidebar-agent',
+
   standalone: false,
   templateUrl: './sidebar-agent.html',
   styleUrl: './sidebar-agent.css',

@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+
+
 type EstadoMant = 'EN REVISIÓN' | 'PENDIENTE' | 'PROGRAMADO' | 'COMPLETADO';
 type TipoMant = 'Plomería' | 'Electricidad' | 'Correctivo' | 'Preventivo' | '';
 

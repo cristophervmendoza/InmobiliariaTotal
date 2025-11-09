@@ -1,1 +1,193 @@
-<p>maintenance-agent works!</p>
+<div class="container">
+  <!-- Header -->
+  <div class="header-main">
+    <div class="header-content">
+      <h2 class="titulo">🔧 Mis Mantenimientos</h2>
+      <p class="subtitulo">Administra y supervisa el estado de mantenimiento de tus propiedades.</p>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="resumen">
+    <div class="card card-revision">
+      <h4>En Revisión</h4>
+      <p class="valor">{{ totalRevision }}</p>
+    </div>
+    <div class="card card-pendiente">
+      <h4>Pendientes</h4>
+      <p class="valor">{{ totalPendiente }}</p>
+    </div>
+    <div class="card card-programado">
+      <h4>Programados</h4>
+      <p class="valor">{{ totalProgramado }}</p>
+    </div>
+    <div class="card card-completado">
+      <h4>Completados</h4>
+      <p class="valor">{{ totalCompletado }}</p>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filtros-container">
+    <div class="filtros">
+      <input type="text"
+             class="filtro-input"
+             placeholder="Buscar por propiedad..."
+             [(ngModel)]="filtros.nombre" />
+
+      <select class="filtro-select" [(ngModel)]="filtros.estado">
+        <option value="">Todos los estados</option>
+        <option value="EN REVISIÓN">En Revisión</option>
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="PROGRAMADO">Programado</option>
+        <option value="COMPLETADO">Completado</option>
+      </select>
+
+      <select class="filtro-select" [(ngModel)]="filtros.tipo">
+        <option value="">Todos los tipos</option>
+        <option value="Plomería">Plomería</option>
+        <option value="Electricidad">Electricidad</option>
+        <option value="Correctivo">Correctivo</option>
+        <option value="Preventivo">Preventivo</option>
+      </select>
+
+      <input type="text"
+             class="filtro-input"
+             placeholder="Responsable..."
+             [(ngModel)]="filtros.responsable" />
+    </div>
+
+    <button class="btn-nuevo" (click)="abrirNuevo()">
+      ➕ Nuevo Mantenimiento
+    </button>
+  </div>
+
+  <!-- Table Section -->
+  <div class="tabla-wrapper" *ngIf="!loading; else loadingTemplate">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Propiedad</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Responsable</th>
+          <th>Fecha</th>
+          <th>Costo (S/)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let m of filtrados" class="fila">
+          <td>{{ m.propiedad }}</td>
+          <td>{{ m.tipo }}</td>
+          <td>
+            <span [ngClass]="claseEstado(m.estado)">{{ m.estado }}</span>
+          </td>
+          <td>{{ m.responsable }}</td>
+          <td>{{ m.fechaProgramada }}</td>
+          <td>S/ {{ m.costo }}</td>
+          <td class="acciones">
+            <button class="btn-accion btn-editar" (click)="handleEditar(m)" title="Editar">
+              ✏️
+            </button>
+            <button class="btn-accion btn-programar" (click)="handleEstado(m.id, 'PROGRAMADO')" title="Programar">
+              📅
+            </button>
+            <button class="btn-accion btn-completar" (click)="handleEstado(m.id, 'COMPLETADO')" title="Completar">
+              ✓
+            </button>
+            <button class="btn-accion btn-eliminar" (click)="handleEliminar(m.id)" title="Eliminar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <p>⏳ Cargando mantenimientos...</p>
+    </div>
+  </ng-template>
+
+  <!-- Form Modal -->
+  <div class="overlay" *ngIf="mostrarForm">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editando ? '✏️ Editar Mantenimiento' : '📋 Nuevo Mantenimiento' }}</h2>
+        <button class="close-btn" (click)="cerrarForm()">✕</button>
+      </div>
+
+      <form class="form" (submit)="guardarForm(); $event.preventDefault()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Propiedad *</label>
+            <select [(ngModel)]="form.propiedad" name="propiedad" required>
+              <option value="">Seleccionar propiedad...</option>
+              <option *ngFor="let p of propiedadesDisponibles" [value]="p">{{ p }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Mantenimiento *</label>
+            <select [(ngModel)]="form.tipo" name="tipo" required>
+              <option value="">Seleccionar tipo...</option>
+              <option value="Plomería">Plomería</option>
+              <option value="Electricidad">Electricidad</option>
+              <option value="Correctivo">Correctivo</option>
+              <option value="Preventivo">Preventivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estado *</label>
+            <select [(ngModel)]="form.estado" name="estado">
+              <option value="EN REVISIÓN">En Revisión</option>
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="PROGRAMADO">Programado</option>
+              <option value="COMPLETADO">Completado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Responsable</label>
+            <select [(ngModel)]="form.responsable" name="responsable">
+              <option value="">Sin asignar</option>
+              <option *ngFor="let r of responsables" [value]="r">{{ r }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Costo (S/)</label>
+            <input type="number" [(ngModel)]="form.costo" name="costo" placeholder="0.00" />
+          </div>
+
+          <div class="form-group">
+            <label>Fecha Programada *</label>
+            <input type="date" [(ngModel)]="form.fechaProgramada" name="fechaProgramada" required />
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="form.descripcion"
+                    name="descripcion"
+                    placeholder="Agrega detalles sobre el mantenimiento..."
+                    rows="3"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancelar" (click)="cerrarForm()">Cancelar</button>
+          <button type="submit" class="btn-guardar">
+            {{ editando ? 'Guardar Cambios' : 'Registrar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
