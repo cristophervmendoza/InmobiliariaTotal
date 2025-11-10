@@ -12,11 +12,16 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
     {
         private readonly AdministradorDao _administradorDao;
         private readonly UsuarioDao _usuarioDao;
+        private readonly IPasswordService _passwordService;
 
-        public AdministradorController(AdministradorDao administradorDao, UsuarioDao usuarioDao)
+        public AdministradorController(
+            AdministradorDao administradorDao,
+            UsuarioDao usuarioDao,
+            IPasswordService passwordService)
         {
             _administradorDao = administradorDao;
             _usuarioDao = usuarioDao;
+            _passwordService = passwordService;
         }
 
         // POST: api/Administrador
@@ -39,14 +44,16 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 Dni = dto.Dni,
                 Email = dto.Email.ToLower(),
                 Telefono = dto.Telefono,
-                IdEstadoUsuario = dto.IdEstadoUsuario,
+                IdEstadoUsuario = dto.IdEstadoUsuario ?? 1, // Default: activo
                 CreadoAt = DateTime.UtcNow,
                 ActualizadoAt = DateTime.UtcNow
             };
 
             usuario.LimpiarNombre();
             usuario.NormalizarEmail();
-            usuario.Password = usuario.HashPassword(dto.Password);
+
+            // ✅ Usar BCrypt con IPasswordService
+            usuario.Password = _passwordService.Hash(dto.Password);
 
             var validationContext = new ValidationContext(usuario);
             var validationResults = new List<ValidationResult>();
@@ -76,6 +83,129 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 return CreatedAtAction(nameof(ObtenerAdministrador),
                     new { id = idAdministrador },
                     new { exito = true, mensaje, idAdministrador, idUsuario });
+            }
+
+            return BadRequest(new { exito = false, mensaje });
+        }
+
+        // PUT: api/Administrador/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarAdministrador(int id, [FromBody] UsuarioUpdateDto dto)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { exito = false, mensaje = "ID inválido" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    exito = false,
+                    mensaje = "Datos inválidos",
+                    errores = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            // Obtener el administrador actual
+            var (exitoGet, mensajeGet, adminActual) = await _administradorDao.ObtenerAdministradorPorIdAsync(id);
+
+            if (!exitoGet || adminActual == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Administrador no encontrado" });
+            }
+
+            // Obtener el usuario asociado
+            var (exitoUsuario, mensajeUsuario, usuario) = await _usuarioDao.ObtenerUsuarioPorIdAsync(adminActual.IdUsuario);
+
+            if (!exitoUsuario || usuario == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Usuario asociado no encontrado" });
+            }
+
+            // Actualizar campos
+            usuario.Nombre = dto.Nombre;
+            usuario.Email = dto.Email.ToLower();
+            usuario.Telefono = dto.Telefono;
+            usuario.IdEstadoUsuario = dto.IdEstadoUsuario ?? usuario.IdEstadoUsuario;
+            usuario.ActualizadoAt = DateTime.UtcNow;
+
+            usuario.LimpiarNombre();
+            usuario.NormalizarEmail();
+
+            try
+            {
+                usuario.ValidarDatos();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { exito = false, mensaje = ex.Message });
+            }
+
+            var (exito, mensaje) = await _usuarioDao.ActualizarUsuarioAsync(usuario);
+
+            if (exito)
+            {
+                return Ok(new { exito = true, mensaje });
+            }
+
+            return BadRequest(new { exito = false, mensaje });
+        }
+
+        // PUT: api/Administrador/{id}/cambiar-password
+        [HttpPut("{id}/cambiar-password")]
+        public async Task<IActionResult> CambiarPasswordAdministrador(int id, [FromBody] CambiarPasswordDto dto)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { exito = false, mensaje = "ID inválido" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    exito = false,
+                    mensaje = "Datos inválidos",
+                    errores = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            // Obtener el administrador
+            var (exitoGet, mensajeGet, admin) = await _administradorDao.ObtenerAdministradorPorIdAsync(id);
+
+            if (!exitoGet || admin == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Administrador no encontrado" });
+            }
+
+            // Obtener el usuario asociado
+            var (exitoUsuario, mensajeUsuario, usuario) = await _usuarioDao.ObtenerUsuarioPorIdAsync(admin.IdUsuario);
+
+            if (!exitoUsuario || usuario == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Usuario asociado no encontrado" });
+            }
+
+            // ✅ Verificar contraseña actual con BCrypt
+            if (!_passwordService.Verify(dto.PasswordActual, usuario.Password))
+            {
+                return BadRequest(new { exito = false, mensaje = "La contraseña actual es incorrecta" });
+            }
+
+            // Validar fuerza de la nueva contraseña
+            if (!usuario.EsPasswordSegura(dto.NuevaPassword))
+            {
+                return BadRequest(new { exito = false, mensaje = "La nueva contraseña no cumple los requisitos de seguridad" });
+            }
+
+            // ✅ Hashear nueva contraseña con BCrypt
+            var nuevoHash = _passwordService.Hash(dto.NuevaPassword);
+            var (exito, mensaje) = await _usuarioDao.CambiarPasswordAsync(usuario.IdUsuario, nuevoHash);
+
+            if (exito)
+            {
+                return Ok(new { exito = true, mensaje = "Contraseña actualizada correctamente" });
             }
 
             return BadRequest(new { exito = false, mensaje });

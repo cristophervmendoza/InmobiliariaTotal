@@ -78,17 +78,24 @@ import {
   ClipboardList,
   CalendarDays,
   Pencil,
-  Calendar as CalendarIcon, // alias para evitar confusión, el name sigue siendo "calendar"
+  Calendar as CalendarIcon,
   Plus,
   Edit2,
 
-  // Agregados requeridos por blockedaccounts
+  // Blockedaccounts
   Shield,
   Mail,
   CreditCard,
   Unlock,
   AlertTriangle,
-  X
+  X,
+
+  // ✅ Employees (COMPLETOS)
+  Upload,
+  ToggleLeft,
+  ToggleRight,
+  Save,
+  UsersRound
 } from 'lucide-angular';
 
 @NgModule({
@@ -166,13 +173,20 @@ import {
       Plus,
       Edit2,
 
-      // Requeridos por blockedaccounts
-      Shield,         // estadísticas y tarjeta
-      Mail,           // email
-      CreditCard,     // DNI
-      Unlock,         // botón desbloquear
-      AlertTriangle,  // advertencia modal
-      X               // cerrar modal
+      // Blockedaccounts
+      Shield,
+      Mail,
+      CreditCard,
+      Unlock,
+      AlertTriangle,
+      X,
+
+      // ✅ Employees
+      Upload,
+      ToggleLeft,
+      ToggleRight,
+      Save,
+      UsersRound
     })
   ],
   exports: [Dashboard]

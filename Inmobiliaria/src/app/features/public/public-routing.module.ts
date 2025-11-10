@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-// Layout
+// Layout 
 import { Layout } from './layout/layout';
 
 // Pages (no standalone)

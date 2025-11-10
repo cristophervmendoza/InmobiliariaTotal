@@ -1,4 +1,5 @@
 <div class="container">
+  <!-- Header -->
   <div class="header">
     <div>
       <h1 class="title">Gestión de Empleados</h1>
@@ -26,7 +27,7 @@
     <div class="tarjeta">
       <div class="contenido">
         <div class="textos">
-          <p class="titulo">Pendientes</p>
+          <p class="titulo">Inactivos</p>
           <h2 class="valor">{{ stats.pendientes }}</h2>
         </div>
         <div class="iconoContainer" [ngStyle]="{ 'background-color': '#f59e0b' }">
@@ -37,7 +38,7 @@
     <div class="tarjeta">
       <div class="contenido">
         <div class="textos">
-          <p class="titulo">Revisadas</p>
+          <p class="titulo">Registrados</p>
           <h2 class="valor">{{ stats.revisadas }}</h2>
         </div>
         <div class="iconoContainer" [ngStyle]="{ 'background-color': '#3b82f6' }">
@@ -48,7 +49,7 @@
     <div class="tarjeta">
       <div class="contenido">
         <div class="textos">
-          <p class="titulo">Aprobadas</p>
+          <p class="titulo">Activos</p>
           <h2 class="valor">{{ stats.aprobadas }}</h2>
         </div>
         <div class="iconoContainer" [ngStyle]="{ 'background-color': '#10b981' }">
@@ -63,11 +64,10 @@
     <div class="searchWrapper">
       <span-lucide name="search" size="18" strokeWidth="2.5" class="searchIcon"></span-lucide>
       <input type="text"
-             placeholder="Buscar por nombre o apellido..."
+             placeholder="Buscar por nombre o email..."
              [value]="searchTerm"
              (input)="onSearchChange($event)"
              class="searchInput" />
-      <!-- Alternativa: (input)="onSearchChange($any($event.target).value)" -->
     </div>
 
     <select [ngModel]="statusFilter"
@@ -85,11 +85,10 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Foto</th>
           <th>Nombre</th>
+          <th>DNI</th>
           <th>Email</th>
           <th>Teléfono</th>
-          <th>Fecha Ingreso</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -97,16 +96,11 @@
       <tbody>
         <tr *ngFor="let empleado of filteredEmpleados">
           <td>
-            <img [src]="empleado.fotoPerfil || '/assets/placeholder.svg'"
-                 [alt]="empleado.nombre + ' ' + empleado.apellido"
-                 class="avatar" />
+            <span class="name">{{ empleado.nombre }}</span>
           </td>
-          <td>
-            <span class="name">{{ empleado.nombre }} {{ empleado.apellido }}</span>
-          </td>
-          <td>{{ empleado.correo }}</td>
+          <td>{{ empleado.dni }}</td>
+          <td>{{ empleado.email }}</td>
           <td>{{ empleado.telefono }}</td>
-          <td>{{ empleado.fechaIngreso | date:'dd/MM/yyyy':'es-ES' }}</td>
           <td>
             <span class="badge" [ngClass]="empleado.estado === 'activo' ? 'badgeActive' : 'badgeInactive'">
               {{ empleado.estado === 'activo' ? 'Activo' : 'Inactivo' }}
@@ -114,15 +108,35 @@
           </td>
           <td>
             <div class="actions">
-              <button (click)="handleView(empleado)" class="actionButton" title="Ver detalles">
+              <button (click)="handleView(empleado)"
+                      class="actionButton"
+                      title="Ver detalles"
+                      aria-label="Ver detalles">
                 <span-lucide name="eye" size="18" strokeWidth="2.5"></span-lucide>
               </button>
-              <button (click)="handleEdit(empleado)" class="actionButton" title="Editar">
+
+              <button (click)="handleEdit(empleado)"
+                      class="actionButton"
+                      title="Editar"
+                      aria-label="Editar">
                 <span-lucide name="edit-2" size="18" strokeWidth="2.5"></span-lucide>
               </button>
-              <button (click)="handleDelete(empleado.id)"
+
+              <button (click)="toggleEstado(empleado.idAgenteInmobiliario)"
+                      class="actionButton"
+                      [class.toggleActive]="empleado.estado === 'activo'"
+                      [class.toggleInactive]="empleado.estado === 'inactivo'"
+                      [title]="empleado.estado === 'activo' ? 'Desactivar' : 'Activar'"
+                      [attr.aria-label]="empleado.estado === 'activo' ? 'Desactivar' : 'Activar'">
+                <span-lucide [name]="empleado.estado === 'activo' ? 'toggle-right' : 'toggle-left'"
+                             size="18"
+                             strokeWidth="2.5"></span-lucide>
+              </button>
+
+              <button (click)="handleDelete(empleado.idAgenteInmobiliario)"
                       class="actionButton deleteButton"
-                      title="Eliminar">
+                      title="Eliminar"
+                      aria-label="Eliminar">
                 <span-lucide name="trash-2" size="18" strokeWidth="2.5"></span-lucide>
               </button>
             </div>
@@ -132,9 +146,15 @@
     </table>
   </div>
 
+  <!-- Empty state -->
   <ng-template #emptyState>
     <div class="emptyState">
+      <span-lucide name="users-round" size="48" strokeWidth="1.5" style="color: #94a3b8; margin-bottom: 12px;"></span-lucide>
       <p>No hay empleados registrados</p>
+      <button (click)="openCreate()" class="emptyStateButton">
+        <span-lucide name="plus" size="18" strokeWidth="2.5"></span-lucide>
+        <span>Crear primer empleado</span>
+      </button>
     </div>
   </ng-template>
 
@@ -150,55 +170,20 @@
 
       <form (ngSubmit)="handleSave()" class="form" autocomplete="off">
         <div class="formGrid">
+          <!-- Nombre Completo -->
           <div class="formGroup fullWidth">
-            <label for="fotoPerfil">Foto de Perfil</label>
-            <div class="imageUploadContainer">
-              <div class="imagePreviewWrapper">
-                <img *ngIf="imagePreview; else placeholderImg" [src]="imagePreview" alt="Preview" class="imagePreview" />
-                <ng-template #placeholderImg>
-                  <div class="imagePlaceholder">
-                    <span-lucide name="upload" size="32" strokeWidth="2.5"></span-lucide>
-                    <p>Sin imagen</p>
-                  </div>
-                </ng-template>
-              </div>
-
-              <input type="file"
-                     id="fotoPerfil"
-                     name="fotoPerfil"
-                     accept="image/*"
-                     (change)="handleImageChange($event)"
-                     class="fileInput" />
-              <label for="fotoPerfil" class="fileInputLabel">
-                <span-lucide name="upload" size="18" strokeWidth="2.5"></span-lucide>
-                <span>Seleccionar imagen</span>
-              </label>
-            </div>
-            <span class="error" *ngIf="errors['fotoPerfil']">{{ errors['fotoPerfil'] }}</span>
-          </div>
-
-          <div class="formGroup">
-            <label for="nombre">Nombre *</label>
+            <label for="nombre">Nombre Completo *</label>
             <input type="text"
                    id="nombre"
                    name="nombre"
                    [ngModel]="formData.nombre"
                    (ngModelChange)="handleInputChange('nombre', $event)"
-                   [class.inputError]="!!errors['nombre']" />
+                   [class.inputError]="!!errors['nombre']"
+                   placeholder="Ej: Carlos Rodríguez" />
             <span class="error" *ngIf="errors['nombre']">{{ errors['nombre'] }}</span>
           </div>
 
-          <div class="formGroup">
-            <label for="apellido">Apellido *</label>
-            <input type="text"
-                   id="apellido"
-                   name="apellido"
-                   [ngModel]="formData.apellido"
-                   (ngModelChange)="handleInputChange('apellido', $event)"
-                   [class.inputError]="!!errors['apellido']" />
-            <span class="error" *ngIf="errors['apellido']">{{ errors['apellido'] }}</span>
-          </div>
-
+          <!-- DNI -->
           <div class="formGroup">
             <label for="dni">DNI *</label>
             <input type="text"
@@ -206,21 +191,27 @@
                    name="dni"
                    [ngModel]="formData.dni"
                    (ngModelChange)="handleInputChange('dni', $event)"
-                   [class.inputError]="!!errors['dni']" />
+                   [class.inputError]="!!errors['dni']"
+                   [disabled]="!!editingEmployee"
+                   placeholder="12345678"
+                   maxlength="8" />
             <span class="error" *ngIf="errors['dni']">{{ errors['dni'] }}</span>
           </div>
 
+          <!-- Email -->
           <div class="formGroup">
-            <label for="correo">Correo *</label>
+            <label for="email">Email *</label>
             <input type="email"
-                   id="correo"
-                   name="correo"
-                   [ngModel]="formData.correo"
-                   (ngModelChange)="handleInputChange('correo', $event)"
-                   [class.inputError]="!!errors['correo']" />
-            <span class="error" *ngIf="errors['correo']">{{ errors['correo'] }}</span>
+                   id="email"
+                   name="email"
+                   [ngModel]="formData.email"
+                   (ngModelChange)="handleInputChange('email', $event)"
+                   [class.inputError]="!!errors['email']"
+                   placeholder="correo@idealhome.pe" />
+            <span class="error" *ngIf="errors['email']">{{ errors['email'] }}</span>
           </div>
 
+          <!-- Teléfono -->
           <div class="formGroup">
             <label for="telefono">Teléfono *</label>
             <input type="tel"
@@ -228,57 +219,43 @@
                    name="telefono"
                    [ngModel]="formData.telefono"
                    (ngModelChange)="handleInputChange('telefono', $event)"
-                   [class.inputError]="!!errors['telefono']" />
+                   [class.inputError]="!!errors['telefono']"
+                   placeholder="987654321"
+                   maxlength="9" />
             <span class="error" *ngIf="errors['telefono']">{{ errors['telefono'] }}</span>
           </div>
 
-          <div class="formGroup">
-            <label for="fechaIngreso">Fecha de Ingreso *</label>
-            <input type="date"
-                   id="fechaIngreso"
-                   name="fechaIngreso"
-                   [ngModel]="formData.fechaIngreso"
-                   (ngModelChange)="handleInputChange('fechaIngreso', $event)" />
-          </div>
-
-          <div class="formGroup fullWidth">
-            <label for="direccion">Dirección *</label>
-            <input type="text"
-                   id="direccion"
-                   name="direccion"
-                   [ngModel]="formData.direccion"
-                   (ngModelChange)="handleInputChange('direccion', $event)"
-                   [class.inputError]="!!errors['direccion']" />
-            <span class="error" *ngIf="errors['direccion']">{{ errors['direccion'] }}</span>
-          </div>
-
-          <div class="formGroup fullWidth" *ngIf="!editingEmployee">
-            <label for="contrasena">Contraseña *</label>
+          <!-- Contraseña (solo al crear) -->
+          <div class="formGroup" *ngIf="!editingEmployee">
+            <label for="password">Contraseña *</label>
             <input type="password"
-                   id="contrasena"
-                   name="contrasena"
-                   [ngModel]="formData.contrasena"
-                   (ngModelChange)="handleInputChange('contrasena', $event)"
-                   [class.inputError]="!!errors['contrasena']" />
-            <span class="error" *ngIf="errors['contrasena']">{{ errors['contrasena'] }}</span>
+                   id="password"
+                   name="password"
+                   [ngModel]="formData.password"
+                   (ngModelChange)="handleInputChange('password', $event)"
+                   [class.inputError]="!!errors['password']"
+                   placeholder="Mínimo 8 caracteres" />
+            <span class="error" *ngIf="errors['password']">{{ errors['password'] }}</span>
           </div>
 
+          <!-- Estado -->
           <div class="formGroup">
-            <label for="estado">Estado *</label>
-            <select id="estado"
-                    name="estado"
-                    [ngModel]="formData.estado"
-                    (ngModelChange)="handleInputChange('estado', $event)">
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
+            <label for="idEstadoUsuario">Estado *</label>
+            <select id="idEstadoUsuario"
+                    name="idEstadoUsuario"
+                    [ngModel]="formData.idEstadoUsuario"
+                    (ngModelChange)="handleInputChange('idEstadoUsuario', $event)">
+              <option [value]="1">Activo</option>
+              <option [value]="2">Inactivo</option>
             </select>
           </div>
         </div>
 
         <div class="formActions">
           <button type="button" (click)="closeForm()" class="cancelButton">Cancelar</button>
-          <button type="submit" class="submitButton">
-            {{ editingEmployee ? 'Actualizar' : 'Crear' }} Empleado
+          <button type="submit" class="submitButton" [disabled]="isLoading">
+            <span-lucide [name]="editingEmployee ? 'save' : 'plus'" size="18" strokeWidth="2.5"></span-lucide>
+            <span>{{ editingEmployee ? 'Actualizar' : 'Crear' }} Empleado</span>
           </button>
         </div>
       </form>
@@ -297,15 +274,10 @@
 
       <div class="modalBody" *ngIf="selectedEmployee as empleado">
         <div class="profileSection">
-          <img [src]="empleado.fotoPerfil || '/assets/placeholder.svg'"
-               [alt]="empleado.nombre + ' ' + empleado.apellido"
-               class="profileImage" />
-          <div>
-            <h3 class="employeeName">{{ empleado.nombre }} {{ empleado.apellido }}</h3>
-            <span class="badge" [ngClass]="empleado.estado === 'activo' ? 'badgeActive' : 'badgeInactive'">
-              {{ empleado.estado === 'activo' ? 'Activo' : 'Inactivo' }}
-            </span>
-          </div>
+          <h3 class="employeeName">{{ empleado.nombre }}</h3>
+          <span class="badge" [ngClass]="empleado.estado === 'activo' ? 'badgeActive' : 'badgeInactive'">
+            {{ empleado.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+          </span>
         </div>
 
         <div class="infoGrid">
@@ -320,8 +292,8 @@
           <div class="infoItem">
             <span-lucide name="mail" size="18" strokeWidth="2.5"></span-lucide>
             <div>
-              <p class="label">Correo</p>
-              <p class="value">{{ empleado.correo }}</p>
+              <p class="label">Email</p>
+              <p class="value">{{ empleado.email }}</p>
             </div>
           </div>
 
@@ -336,23 +308,49 @@
           <div class="infoItem">
             <span-lucide name="calendar" size="18" strokeWidth="2.5"></span-lucide>
             <div>
-              <p class="label">Fecha de Ingreso</p>
-              <p class="value">{{ empleado.fechaIngreso | date:'dd/MM/yyyy':'es-ES' }}</p>
-            </div>
-          </div>
-
-          <div class="infoItem fullWidth">
-            <span-lucide name="map-pin" size="18" strokeWidth="2.5"></span-lucide>
-            <div>
-              <p class="label">Dirección</p>
-              <p class="value">{{ empleado.direccion }}</p>
+              <p class="label">ID Agente</p>
+              <p class="value">{{ empleado.idAgenteInmobiliario }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div class="modalFooter">
-        <button (click)="showModal = false; selectedEmployee = null" class="closeModalButton">Cerrar</button>
+        <button (click)="handleEditFromModal()" class="editFromModalButton">
+          <span-lucide name="edit-2" size="18" strokeWidth="2.5"></span-lucide>
+          <span>Editar Empleado</span>
+        </button>
+        <button (click)="showModal = false; selectedEmployee = null" class="closeModalButton">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación -->
+  <div class="modalOverlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+    <div class="confirmModal" (click)="$event.stopPropagation()">
+      <div class="confirmHeader">
+        <div class="confirmIcon">
+          <span-lucide name="alert-triangle" size="32" strokeWidth="2.5"></span-lucide>
+        </div>
+        <h2 class="confirmTitle">Confirmar Acción</h2>
+      </div>
+
+      <div class="confirmBody">
+        <p class="confirmMessage">{{ confirmMessage }}</p>
+      </div>
+
+      <div class="confirmFooter">
+        <button (click)="closeConfirmModal()" class="confirmCancelButton">
+          Cancelar
+        </button>
+        <button (click)="confirmActionHandler()"
+                class="confirmAcceptButton"
+                [class.deleteButton]="confirmAction === 'delete'"
+                [disabled]="isLoading">
+          {{ confirmAction === 'delete' ? 'Eliminar' : 'Confirmar' }}
+        </button>
       </div>
     </div>
   </div>

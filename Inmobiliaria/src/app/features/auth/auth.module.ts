@@ -30,7 +30,8 @@ import {
   Upload,
   FileText,
   X,
-  AlertCircle // 👈 faltaba
+  AlertCircle,
+  IdCard// 👈 faltaba
 } from 'lucide-angular';
 
 @NgModule({
@@ -63,7 +64,8 @@ import {
       Upload,
       FileText,
       X,
-      AlertCircle // 👈 habilita name="alert-circle"
+      AlertCircle,
+      IdCard// 👈 habilita name="alert-circle"
     })
   ]
 })

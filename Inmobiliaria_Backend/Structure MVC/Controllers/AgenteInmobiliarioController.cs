@@ -12,11 +12,16 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
     {
         private readonly AgenteInmobiliarioDao _agenteDao;
         private readonly UsuarioDao _usuarioDao;
+        private readonly IPasswordService _passwordService;
 
-        public AgenteInmobiliarioController(AgenteInmobiliarioDao agenteDao, UsuarioDao usuarioDao)
+        public AgenteInmobiliarioController(
+            AgenteInmobiliarioDao agenteDao,
+            UsuarioDao usuarioDao,
+            IPasswordService passwordService)
         {
             _agenteDao = agenteDao;
             _usuarioDao = usuarioDao;
+            _passwordService = passwordService;
         }
 
         // POST: api/AgenteInmobiliario
@@ -39,14 +44,16 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 Dni = dto.Dni,
                 Email = dto.Email.ToLower(),
                 Telefono = dto.Telefono,
-                IdEstadoUsuario = dto.IdEstadoUsuario,
+                IdEstadoUsuario = dto.IdEstadoUsuario ?? 1, // Default: activo
                 CreadoAt = DateTime.UtcNow,
                 ActualizadoAt = DateTime.UtcNow
             };
 
             usuario.LimpiarNombre();
             usuario.NormalizarEmail();
-            usuario.Password = usuario.HashPassword(dto.Password);
+
+            // ✅ Usar BCrypt con IPasswordService
+            usuario.Password = _passwordService.Hash(dto.Password);
 
             var validationContext = new ValidationContext(usuario);
             var validationResults = new List<ValidationResult>();
@@ -76,6 +83,129 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 return CreatedAtAction(nameof(ObtenerAgenteInmobiliario),
                     new { id = idAgente },
                     new { exito = true, mensaje, idAgente, idUsuario });
+            }
+
+            return BadRequest(new { exito = false, mensaje });
+        }
+
+        // PUT: api/AgenteInmobiliario/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarAgenteInmobiliario(int id, [FromBody] UsuarioUpdateDto dto)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { exito = false, mensaje = "ID inválido" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    exito = false,
+                    mensaje = "Datos inválidos",
+                    errores = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            // Obtener el agente actual
+            var (exitoGet, mensajeGet, agenteActual) = await _agenteDao.ObtenerAgentePorIdAsync(id);
+
+            if (!exitoGet || agenteActual == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Agente no encontrado" });
+            }
+
+            // Obtener el usuario asociado
+            var (exitoUsuario, mensajeUsuario, usuario) = await _usuarioDao.ObtenerUsuarioPorIdAsync(agenteActual.IdUsuario);
+
+            if (!exitoUsuario || usuario == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Usuario asociado no encontrado" });
+            }
+
+            // Actualizar campos
+            usuario.Nombre = dto.Nombre;
+            usuario.Email = dto.Email.ToLower();
+            usuario.Telefono = dto.Telefono;
+            usuario.IdEstadoUsuario = dto.IdEstadoUsuario ?? usuario.IdEstadoUsuario;
+            usuario.ActualizadoAt = DateTime.UtcNow;
+
+            usuario.LimpiarNombre();
+            usuario.NormalizarEmail();
+
+            try
+            {
+                usuario.ValidarDatos();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { exito = false, mensaje = ex.Message });
+            }
+
+            var (exito, mensaje) = await _usuarioDao.ActualizarUsuarioAsync(usuario);
+
+            if (exito)
+            {
+                return Ok(new { exito = true, mensaje });
+            }
+
+            return BadRequest(new { exito = false, mensaje });
+        }
+
+        // PUT: api/AgenteInmobiliario/{id}/cambiar-password
+        [HttpPut("{id}/cambiar-password")]
+        public async Task<IActionResult> CambiarPasswordAgente(int id, [FromBody] CambiarPasswordDto dto)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { exito = false, mensaje = "ID inválido" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    exito = false,
+                    mensaje = "Datos inválidos",
+                    errores = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            // Obtener el agente
+            var (exitoGet, mensajeGet, agente) = await _agenteDao.ObtenerAgentePorIdAsync(id);
+
+            if (!exitoGet || agente == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Agente no encontrado" });
+            }
+
+            // Obtener el usuario asociado
+            var (exitoUsuario, mensajeUsuario, usuario) = await _usuarioDao.ObtenerUsuarioPorIdAsync(agente.IdUsuario);
+
+            if (!exitoUsuario || usuario == null)
+            {
+                return NotFound(new { exito = false, mensaje = "Usuario asociado no encontrado" });
+            }
+
+            // ✅ Verificar contraseña actual con BCrypt
+            if (!_passwordService.Verify(dto.PasswordActual, usuario.Password))
+            {
+                return BadRequest(new { exito = false, mensaje = "La contraseña actual es incorrecta" });
+            }
+
+            // Validar fuerza de la nueva contraseña
+            if (!usuario.EsPasswordSegura(dto.NuevaPassword))
+            {
+                return BadRequest(new { exito = false, mensaje = "La nueva contraseña no cumple los requisitos de seguridad" });
+            }
+
+            // ✅ Hashear nueva contraseña con BCrypt
+            var nuevoHash = _passwordService.Hash(dto.NuevaPassword);
+            var (exito, mensaje) = await _usuarioDao.CambiarPasswordAsync(usuario.IdUsuario, nuevoHash);
+
+            if (exito)
+            {
+                return Ok(new { exito = true, mensaje = "Contraseña actualizada correctamente" });
             }
 
             return BadRequest(new { exito = false, mensaje });
@@ -120,18 +250,39 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         }
 
         // GET: api/AgenteInmobiliario
+        // GET: api/AgenteInmobiliario
         [HttpGet]
         public async Task<IActionResult> ListarAgentesInmobiliarios()
         {
             var (exito, mensaje, agentes) = await _agenteDao.ListarAgentesAsync();
 
-            if (exito)
+            if (exito && agentes != null)
             {
-                return Ok(new { exito = true, mensaje, data = agentes, total = agentes?.Count ?? 0 });
+                // ✅ Aplanar los datos aquí
+                var agentesDto = agentes.Select(a => new
+                {
+                    idAgenteInmobiliario = a.IdAgente,
+                    idUsuario = a.IdUsuario,
+                    nombre = a.Usuario?.Nombre ?? string.Empty,
+                    dni = a.Usuario?.Dni ?? string.Empty,
+                    email = a.Usuario?.Email ?? string.Empty,
+                    telefono = a.Usuario?.Telefono,
+                    fechaIngreso = a.Usuario?.CreadoAt ?? DateTime.MinValue,
+                    idEstadoUsuario = a.Usuario?.IdEstadoUsuario ?? 1
+                }).ToList();
+
+                return Ok(new
+                {
+                    exito = true,
+                    mensaje,
+                    data = agentesDto,
+                    total = agentesDto.Count
+                });
             }
 
             return BadRequest(new { exito = false, mensaje });
         }
+
 
         // GET: api/AgenteInmobiliario/paginado?pagina=1&tamanoPagina=10
         [HttpGet("paginado")]
@@ -232,5 +383,44 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
             return NotFound(new { exito = false, mensaje });
         }
+
+        // PUT: api/AgenteInmobiliario/{id}/cambiar-estado
+        [HttpPut("{id}/cambiar-estado")]
+        public async Task<IActionResult> CambiarEstadoAgente(int id, [FromBody] CambiarUsuarioEstadoDto dto)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { exito = false, mensaje = "ID inválido" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    exito = false,
+                    mensaje = "Datos inválidos",
+                    errores = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            var (exito, mensaje) = await _agenteDao.CambiarEstadoAgenteAsync(id, dto.IdEstadoUsuario);
+
+            if (exito)
+            {
+                return Ok(new { exito = true, mensaje });
+            }
+
+            return BadRequest(new { exito = false, mensaje });
+        }
+
+
+
+
+
+
+
+
+
+
     }
 }

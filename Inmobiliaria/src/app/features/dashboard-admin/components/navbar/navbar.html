@@ -47,7 +47,7 @@
           <span class="avatarText">{{ initials }}</span>
         </div>
 
-        <!-- Info del usuario -->
+        <!-- ✅ Info del usuario: Nombre y Rol -->
         <div class="userInfo">
           <span class="userName">{{ userName }}</span>
           <span class="userRole">{{ userRole }}</span>
@@ -59,32 +59,40 @@
 
       <!-- Menú desplegable -->
       <div class="dropdownMenu" *ngIf="showDropdown" role="menu" (click)="$event.stopPropagation()">
+        <!-- ✅ Header: Nombre, Email y Rol -->
         <div class="dropdownHeader">
-          <div class="dropdownUserName">{{ userName }}</div>
-          <div class="dropdownUserRole">{{ userRole }}</div>
+          <div class="dropdownAvatar">{{ initials }}</div>
+          <div class="dropdownUserInfo">
+            <div class="dropdownUserName">{{ userName }}</div>
+            <div class="dropdownUserEmail">{{ userEmail }}</div>
+            <span class="dropdownRoleBadge">{{ userRole }}</span>
+          </div>
         </div>
 
+        <div class="dropdownDivider"></div>
+
+        <!-- ✅ Opciones del menú -->
         <div class="dropdownSection">
-          <button class="dropdownItem" type="button">
+          <button class="dropdownItem" type="button" routerLink="/profile" (click)="showDropdown = false">
             <span-lucide name="user" size="18" strokeWidth="2"></span-lucide>
             <span>Mi Perfil</span>
           </button>
 
-          <button class="dropdownItem" type="button">
+          <button class="dropdownItem" type="button" routerLink="/settings" (click)="showDropdown = false">
             <span-lucide name="settings" size="18" strokeWidth="2"></span-lucide>
             <span>Configuración</span>
           </button>
         </div>
 
+        <div class="dropdownDivider"></div>
+
+        <!-- ✅ Cerrar sesión -->
         <div class="dropdownSectionLogout">
-          <button class="dropdownItemLogout" type="button">
+          <button class="dropdownItemLogout" type="button" (click)="logout()">
             <span-lucide name="log-out" size="18" strokeWidth="2"></span-lucide>
             <span>Cerrar Sesión</span>
           </button>
         </div>
-
-
-
       </div>
     </div>
   </div>

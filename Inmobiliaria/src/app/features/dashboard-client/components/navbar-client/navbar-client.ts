@@ -137,8 +137,8 @@ export class NavbarClient {
 
 
   logout(): void {
-    this.auth.logout();                  // limpia la sesión (localStorage, etc.)
-    this.router.navigate(['/auth/login']); // navega al login
+    this.auth.logout(); // ✅ Este método ahora limpia todo correctamente
   }
+
 }
 
