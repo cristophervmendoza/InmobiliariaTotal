@@ -1,1 +1,280 @@
-<p>messages-agent works!</p>
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1 class="title">Mensajes</h1>
+      <p class="subtitle">Gestiona las consultas de tus clientes</p>
+    </div>
+    <div class="stats">
+      <div class="statCard">
+        <div class="statValue">{{ getPendientesCount() }}</div>
+        <div class="statLabel">Pendientes</div>
+      </div>
+      <div class="statCard">
+        <div class="statValue">{{ getTotalCount() }}</div>
+        <div class="statLabel">Total</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="searchBox">
+      <svg class="searchIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text"
+             placeholder="Buscar por cliente o propiedad..."
+             [(ngModel)]="searchText"
+             (input)="onSearchChange()"
+             class="searchInput" />
+    </div>
+
+    <div class="filterButtons">
+      <button [ngClass]="{ 'filterBtn': true, 'active': filterType === 'todos' }"
+              (click)="onFilterChange('todos')">
+        Todos ({{ getTotalCount() }})
+      </button>
+      <button [ngClass]="{ 'filterBtn': true, 'active': filterType === 'pendientes' }"
+              (click)="onFilterChange('pendientes')">
+        Pendientes ({{ getPendientesCount() }})
+      </button>
+      <button [ngClass]="{ 'filterBtn': true, 'active': filterType === 'respondidos' }"
+              (click)="onFilterChange('respondidos')">
+        Respondidos ({{ getTotalCount() - getPendientesCount() }})
+      </button>
+    </div>
+  </div>
+
+  <!-- LAYOUT DE MENSAJES -->
+  <div class="messageLayout">
+    <!-- LISTA DE MENSAJES -->
+    <div class="messageList">
+      <div *ngIf="filteredMensajes.length === 0" class="noMessages">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <p>No hay mensajes</p>
+      </div>
+
+      <div *ngFor="let mensaje of filteredMensajes"
+           [ngClass]="{
+          'messageItem': true,
+          'selected': selectedMensaje?.id === mensaje.id,
+          'unread': !mensaje.leido
+        }"
+           (click)="handleSelectMensaje(mensaje)">
+        <div class="messageHeader">
+          <div class="clientAvatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="messageInfo">
+            <div class="clientName">{{ mensaje.clienteNombre }}</div>
+            <div class="propertyTag">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              {{ mensaje.propiedad.titulo }}
+            </div>
+          </div>
+          <div *ngIf="!mensaje.leido" class="unreadBadge"></div>
+        </div>
+        <div class="messagePreview">{{ mensaje.mensaje }}</div>
+        <div class="messageFooter">
+          <div class="messageDate">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ mensaje.fecha }}
+          </div>
+          <div *ngIf="mensaje.respondido" class="respondedBadge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+              <polyline points="9 17 20 6"></polyline>
+            </svg>
+            Respondido
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETALLE DEL MENSAJE -->
+    <div class="messageDetail">
+      <ng-container *ngIf="selectedMensaje; else noSelection">
+        <div class="detailHeader">
+          <div class="clientInfo">
+            <div class="clientAvatarLarge">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div>
+              <h3 class="clientNameLarge">{{ selectedMensaje.clienteNombre }}</h3>
+              <div class="contactInfo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                {{ selectedMensaje.clienteTelefono }}
+              </div>
+            </div>
+          </div>
+          <div class="headerActions">
+            <button class="profileBtn" (click)="onProfileOpen()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"></path>
+                <line x1="9" y1="6" x2="15" y2="6"></line>
+                <line x1="9" y1="12" x2="15" y2="12"></line>
+                <line x1="9" y1="18" x2="15" y2="18"></line>
+              </svg>
+              Ver Perfil
+            </button>
+            <button class="whatsappBtn" (click)="handleWhatsApp()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              WhatsApp
+            </button>
+          </div>
+        </div>
+
+        <div class="propertyInfo">
+          <img [src]="selectedMensaje.propiedad.imagen" alt="" />
+          <div>
+            <div class="propertyLabel">Propiedad de interés:</div>
+            <div class="propertyTitle">{{ selectedMensaje.propiedad.titulo }}</div>
+          </div>
+        </div>
+
+        <div class="messageContent">
+          <div class="messageLabel">Mensaje del cliente:</div>
+          <div class="messageText">{{ selectedMensaje.mensaje }}</div>
+          <div class="messageTime">Recibido el {{ selectedMensaje.fecha }}</div>
+        </div>
+
+        <div class="responseSection">
+          <label class="responseLabel">Tu respuesta:</label>
+          <textarea [(ngModel)]="respuesta"
+                    placeholder="Escribe tu respuesta al cliente..."
+                    rows="5"
+                    class="responseTextarea"></textarea>
+          <div class="responseActions">
+            <button class="sendBtn"
+                    (click)="handleEnviarRespuesta()"
+                    [disabled]="!respuesta.trim()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              Enviar Respuesta
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #noSelection>
+        <div class="noSelection">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <p>Selecciona un mensaje para ver los detalles</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- MODAL DE PERFIL DEL CLIENTE -->
+  <div *ngIf="showProfileModal && selectedMensaje"
+       class="modalOverlay"
+       (click)="onProfileClose()">
+    <div class="modalContent" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h3 class="modalTitle">Perfil del Cliente</h3>
+        <button class="closeBtn" (click)="onProfileClose()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="profileContent">
+        <div class="profileAvatar">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+
+        <div class="profileInfo">
+          <div class="profileField">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <div>
+              <div class="profileLabel">Nombre Completo</div>
+              <div class="profileValue">{{ selectedMensaje.clienteNombre }}</div>
+            </div>
+          </div>
+
+          <div class="profileField">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"></path>
+              <line x1="9" y1="6" x2="15" y2="6"></line>
+              <line x1="9" y1="12" x2="15" y2="12"></line>
+              <line x1="9" y1="18" x2="15" y2="18"></line>
+            </svg>
+            <div>
+              <div class="profileLabel">DNI</div>
+              <div class="profileValue">{{ selectedMensaje.clienteDni }}</div>
+            </div>
+          </div>
+
+          <div class="profileField">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <div>
+              <div class="profileLabel">Teléfono</div>
+              <div class="profileValue">{{ selectedMensaje.clienteTelefono }}</div>
+            </div>
+          </div>
+
+          <div class="profileField">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="m10 9 5 3-5 3z"></path>
+            </svg>
+            <div>
+              <div class="profileLabel">Correo Electrónico</div>
+              <div class="profileValue">{{ selectedMensaje.clienteEmail }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profileActions">
+          <button class="callBtn" (click)="handleCall()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            Llamar
+          </button>
+          <button class="emailBtn" (click)="handleEmail()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="m10 9 5 3-5 3z"></path>
+            </svg>
+            Enviar Email
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

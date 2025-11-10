@@ -8,7 +8,7 @@ interface Company {
   ruc: string;
   correo: string;
   direccion: string;
-  logo: string;
+  logo: string; //SOLO PUEDE VISUALIZAR LOS DETALLES 
   fechaRegistro: string;
   telefono: string;
   estado: Estado;

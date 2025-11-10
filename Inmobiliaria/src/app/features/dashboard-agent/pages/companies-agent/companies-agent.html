@@ -1,1 +1,121 @@
-<p>companies-agent works!</p>
+<main class="empresas-agente-container">
+  <div class="empresas-agente-header">
+    <div class="header-content">
+      <h1 class="header-title">Empresas Disponibles</h1>
+      <p class="header-description">Consulta las empresas con las que trabaja la inmobiliaria</p>
+    </div>
+  </div>
+
+  <div class="empresas-agente-filters">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text"
+             placeholder="Buscar por nombre o RUC..."
+             [(ngModel)]="searchTerm"
+             class="search-input" />
+    </div>
+    <div class="filter-dropdown">
+      <span class="dropdown-icon">▼</span>
+      <select [(ngModel)]="filterType" class="filter-select">
+        <option *ngFor="let tipo of tiposEmpresa" [value]="tipo">{{ tipo }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="empresas-agente-table-wrapper">
+    <table class="empresas-agente-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>RUC</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Tipo</th>
+          <th>Fecha Registro</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let empresa of empresasFiltradas">
+          <td>{{ empresa.nombre }}</td>
+          <td>{{ empresa.ruc }}</td>
+          <td>{{ empresa.email }}</td>
+          <td>{{ empresa.telefono }}</td>
+          <td><span class="tipo-badge">{{ empresa.tipoEmpresa }}</span></td>
+          <td>{{ empresa.fechaRegistro | date:'dd/MM/yyyy' }}</td>
+          <td class="acciones-cell">
+            <button class="btn-action btn-ver" title="Ver detalles" (click)="handleVerDetalle(empresa)">👁️</button>
+          </td>
+        </tr>
+        <tr *ngIf="empresasFiltradas.length === 0" class="empty-row">
+          <td colspan="7">No se encontraron empresas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de detalle, está embebido aquí mismo -->
+  <div class="detalle-agente-overlay" *ngIf="modalDetalle && empresaSeleccionada">
+    <div class="detalle-agente-modal">
+      <div class="modal-header">
+        <h2>Detalle de Empresa</h2>
+        <button class="btn-close" (click)="cerrarDetalle()">✕</button>
+      </div>
+      <div class="detalle-agente-content">
+        <div class="detalle-section">
+          <h3>Información General</h3>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <label>Nombre</label>
+              <p>{{ empresaSeleccionada.nombre }}</p>
+            </div>
+            <div class="detalle-item">
+              <label>RUC</label>
+              <p>{{ empresaSeleccionada.ruc }}</p>
+            </div>
+            <div class="detalle-item">
+              <label>Tipo de Empresa</label>
+              <p><span class="tipo-badge-detalle">{{ empresaSeleccionada.tipoEmpresa }}</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="detalle-section">
+          <h3>Contacto</h3>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <label>Email</label>
+              <p><a [href]="'mailto:' + empresaSeleccionada.email">{{ empresaSeleccionada.email }}</a></p>
+            </div>
+            <div class="detalle-item">
+              <label>Teléfono</label>
+              <p><a [href]="'tel:' + empresaSeleccionada.telefono">{{ empresaSeleccionada.telefono }}</a></p>
+            </div>
+          </div>
+        </div>
+        <div class="detalle-section">
+          <h3>Ubicación</h3>
+          <div class="detalle-item full">
+            <label>Dirección</label>
+            <p>{{ empresaSeleccionada.direccion }}</p>
+          </div>
+        </div>
+        <div class="detalle-section">
+          <h3>Fechas</h3>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <label>Fecha de Registro</label>
+              <p>{{ empresaSeleccionada.fechaRegistro | date:'dd/MM/yyyy' }}</p>
+            </div>
+            <div class="detalle-item">
+              <label>Última Actualización</label>
+              <p>{{ empresaSeleccionada.actualizadoAt | date:'dd/MM/yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cerrar" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</main>
