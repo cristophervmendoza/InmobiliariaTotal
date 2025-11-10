@@ -1,0 +1,100 @@
+<div class="property-detail-container" *ngIf="property; else loadingTpl">
+  <div class="content">
+    <!-- COLUMNA PRINCIPAL -->
+    <div class="main">
+      <!-- ENCABEZADO -->
+      <div class="header">
+        <div class="typeBadge">{{ property.type }}</div>
+        <h1 class="title">{{ property.title }}</h1>
+        <p class="location">📍 {{ property.location }}</p>
+        <div class="price">$ {{ property.price | number: '1.0-0' }}</div>
+      </div>
+
+      <!-- CARACTERÍSTICAS PRINCIPALES -->
+      <div class="section">
+        <h2>Características Principales</h2>
+        <div class="main-features">
+          <div class="feature-card">
+            🛏️ <div><strong>{{ property.bedrooms }}</strong><span>Habitaciones</span></div>
+          </div>
+          <div class="feature-card">
+            🛁 <div><strong>{{ property.bathrooms }}</strong><span>Baños</span></div>
+          </div>
+          <div class="feature-card">
+            📐 <div><strong>{{ property.area }} m²</strong><span>Área</span></div>
+          </div>
+          <div class="feature-card">
+            🚗 <div><strong>{{ property.parking }}</strong><span>Estacionamientos</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESCRIPCIÓN -->
+      <div class="section">
+        <h2>Descripción</h2>
+        <p>{{ property.description }}</p>
+      </div>
+
+      <!-- CARACTERÍSTICAS ADICIONALES -->
+      <div class="section" *ngIf="property && property.features && property.features.length > 0">
+        <h2>Características Adicionales</h2>
+        <ul class="list">
+          <li *ngFor="let feature of property.features">✔ {{ feature }}</li>
+        </ul>
+      </div>
+
+      <!-- AMENIDADES -->
+      <div class="section" *ngIf="property && property.amenities && property.amenities.length > 0">
+        <h2>Amenidades</h2>
+        <ul class="list">
+          <li *ngFor="let amenity of property.amenities">✔ {{ amenity }}</li>
+        </ul>
+      </div>
+    </div>
+
+
+
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <!-- AGENTE -->
+      <div class="agentCard">
+        <h3>AGENTE ASIGNADO</h3>
+        <p class="agentName">{{ property.agent.name }}</p>
+        <p>{{ property.agent.phone }}</p>
+        <p>{{ property.agent.email }}</p>
+        <button class="btnContact">Contactar Agente</button>
+      </div>
+
+      <!-- CALCULADORA -->
+      <div class="calculator">
+        <h3>Calculadora de Cuotas</h3>
+
+        <label>Inicial ($)</label>
+        <input type="number" placeholder="Ej: 90000"
+               [(ngModel)]="downPayment"
+               (input)="calculateMortgage()" />
+
+        <label>Tasa de Interés Anual (%)</label>
+        <input type="number" [(ngModel)]="interestRate"
+               (input)="calculateMortgage()" />
+
+        <label>Plazo (años)</label>
+        <input type="number" [(ngModel)]="loanTerm"
+               (input)="calculateMortgage()" />
+
+        <div class="calcResult" *ngIf="monthlyPayment > 0">
+          <div class="label">Cuota Mensual Estimada</div>
+          <div class="value">$ {{ monthlyPayment | number: '1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<ng-template #loadingTpl>
+  <div class="loading">Cargando detalles de la propiedad...</div>
+</ng-template>

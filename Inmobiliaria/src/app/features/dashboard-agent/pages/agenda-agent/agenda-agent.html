@@ -1,1 +1,155 @@
-<p>agenda-agent works!</p>
+<div class="container">
+  <div class="pageHeader">
+    <div>
+      <h1 class="pageTitle">Agenda del Agente</h1>
+      <p class="pageSubtitle">Gestiona tus citas y eventos fácilmente</p>
+    </div>
+    <button class="opcion" (click)="abrirModal()">
+      <span-lucide name="plus" size="18"></span-lucide>
+      <span class="label">Nuevo Evento</span>
+    </button>
+  </div>
+
+  <div class="selector">
+    <select class="opcion" [(ngModel)]="filtroEstado">
+      <option value="todos">Todos los estados</option>
+      <option value="Confirmada">Confirmada</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Cancelada">Cancelada</option>
+    </select>
+  </div>
+
+  <div *ngIf="!loading; else cargandoTpl" class="eventosGrid">
+    <div *ngIf="!agendaFiltrada.length" class="contenedorVacio">
+      <p class="mensajeVacio">No hay eventos</p>
+    </div>
+    <div class="eventoCard" *ngFor="let ev of agendaFiltrada">
+      <div class="cardHeader" [ngClass]="prioridadClase(ev.idTipoPrioridad)">
+        <div class="cardTitulo">{{ ev.titulo }}</div>
+        <div class="cardAcciones">
+          <button class="opcion" (click)="abrirModal(ev)" title="Editar">        
+              <span style="font-size:1.2rem;">✎</span>
+          </button>
+          <button class="opcion" (click)="handleEliminar(ev.idAgenda)" title="Eliminar">
+            <span style="font-size:1.2rem;">🗑️</span>
+          </button>
+        </div>
+      </div>
+      <div class="cardContenido">
+        <div class="cardFila">
+          <span class="label">Tipo:</span>
+          <span class="badge">{{ ev.tipo }}</span>
+        </div>
+        <div class="cardFila">
+          <span class="label">Fecha:</span>
+          <span>{{ ev.fechaHora | date:'dd/MM/yyyy, HH:mm' }}</span>
+        </div>
+        <div class="cardFila">
+          <span class="label">Ubicación:</span>
+          <span>{{ ev.ubicacion }}</span>
+        </div>
+        <div class="cardFila">
+          <span class="label">Teléfono:</span>
+          <span>{{ ev.telefono }}</span>
+        </div>
+        <div class="cardFila">
+          <span class="label">Estado:</span>
+          <span [class]="estadoClase(ev.estado)">{{ ev.estado }}</span>
+        </div>
+        <div class="descripcion">{{ ev.descripcionEvento }}</div>
+      </div>
+    </div>
+  </div>
+  <ng-template #cargandoTpl>
+    <div class="contenedorVacio">
+      <p class="mensajeVacio">Cargando agenda...</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal -->
+  <div class="overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()" style="grid-template-columns:1fr;">
+      <div class="contenido" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h2 class="pageTitle" style="font-size:20px;margin:0;">{{ agendaEditar ? 'Editar Evento' : 'Nuevo Evento' }}</h2>
+          <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarModal()">✖</button>
+        </div>
+        <div class="selector" style="flex-direction:column;gap:12px;">
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Título *</label>
+              <input type="text" [(ngModel)]="form.titulo" placeholder="Ej: Visita a inmueble" style="width:100%;border:none;outline:none;background:transparent;" />
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Tipo *</label>
+                <select [(ngModel)]="form.tipo" style="width:100%;border:none;outline:none;background:transparent;">
+                  <option value="Cita">Cita</option>
+                  <option value="Reunión">Reunión</option>
+                  <option value="Seguimiento">Seguimiento</option>
+                  <option value="Evento">Evento</option>
+                </select>
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Estado *</label>
+                <select [(ngModel)]="form.estado" style="width:100%;border:none;outline:none;background:transparent;">
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Cancelada">Cancelada</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Teléfono</label>
+                <input type="tel" [(ngModel)]="form.telefono" placeholder="Ej: 987654321" style="width:100%;border:none;outline:none;background:transparent;" />
+              </div>
+            </div>
+            <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+              <div style="width:100%;">
+                <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Prioridad</label>
+                <select [(ngModel)]="form.idTipoPrioridad" style="width:100%;border:none;outline:none;background:transparent;">
+                  <option [ngValue]="1">Alta</option>
+                  <option [ngValue]="2">Media</option>
+                  <option [ngValue]="3">Baja</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Fecha y Hora *</label>
+              <input type="datetime-local" [(ngModel)]="form.fechaHora" style="width:100%;border:none;outline:none;background:transparent;" />
+            </div>
+          </div>
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Ubicación</label>
+              <input type="text" [(ngModel)]="form.ubicacion" placeholder="Ej: Miraflores, Lima" style="width:100%;border:none;outline:none;background:transparent;" />
+            </div>
+          </div>
+          <div class="opcion" style="background:#fff;border:1px solid #e2e8f0;justify-content:flex-start;">
+            <div style="width:100%;">
+              <label class="pageSubtitle" style="display:block;margin-bottom:6px;">Descripción</label>
+              <textarea rows="3" [(ngModel)]="form.descripcionEvento" placeholder="Detalles del evento" style="width:100%;border:none;outline:none;background:transparent;"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="opcion" style="background:#fff;border:1px solid #e2e8f0;" (click)="cerrarModal()">Cancelar</button>
+            <button class="opcion" style="background:#e0f2fe;border:1px solid #a5f3fc;color:#0369a1;" (click)="handleGuardar()">
+              <span-lucide name="plus" size="16" *ngIf="!agendaEditar"></span-lucide>
+              <span-lucide name="edit-2" size="16" *ngIf="agendaEditar"></span-lucide>
+              {{ agendaEditar ? 'Actualizar' : 'Crear' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
