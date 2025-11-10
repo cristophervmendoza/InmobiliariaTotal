@@ -1,0 +1,175 @@
+<!-- Overlay -->
+<div class="overlay" (click)="cerrar()" *ngIf="isVisible">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">
+        {{ modoEdicion ? 'Editar Testimonio' : 'Publicar Testimonio' }}
+      </h2>
+      <button class="btn-close" (click)="cerrar()" type="button">
+        <lucide-icon name="x" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-content">
+      <form class="form">
+        <!-- Nombre -->
+        <div class="form-group">
+          <label class="form-label">
+            Nombre del Cliente <span class="required">*</span>
+          </label>
+          <input type="text"
+                 class="form-input"
+                 placeholder="Ej: Luis Martínez"
+                 [(ngModel)]="formData.nombre"
+                 name="nombre">
+        </div>
+
+        <!-- Ubicación -->
+        <div class="form-group">
+          <label class="form-label">
+            Ubicación <span class="required">*</span>
+          </label>
+          <input type="text"
+                 class="form-input"
+                 placeholder="Ej: Barranco, Lima"
+                 [(ngModel)]="formData.ubicacion"
+                 name="ubicacion">
+        </div>
+
+        <!-- Tipo de Propiedad y Tiempo -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              Tipo de Propiedad <span class="required">*</span>
+            </label>
+            <select class="form-select"
+                    [(ngModel)]="formData.tipoPropiedad"
+                    name="tipoPropiedad">
+              <option value="">Seleccionar...</option>
+              <option *ngFor="let tipo of tiposPropiedad" [value]="tipo">
+                {{ tipo }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Días de Venta <span class="required">*</span>
+            </label>
+            <input type="text"
+                   class="form-input"
+                   placeholder="Ej: 28"
+                   [(ngModel)]="formData.tiempo"
+                   name="tiempo">
+          </div>
+        </div>
+
+        <!-- Valoración -->
+        <div class="form-group">
+          <label class="form-label">
+            Valoración <span class="required">*</span>
+          </label>
+          <div class="star-rating">
+            <button *ngFor="let star of getEstrellas()"
+                    type="button"
+                    class="star-button"
+                    [class.active]="star <= formData.valoracion"
+                    (click)="setValoracion(star)">
+              <lucide-icon name="star"
+                           [size]="28"
+                           [class.star-filled]="star <= formData.valoracion">
+              </lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Testimonio -->
+        <div class="form-group">
+          <label class="form-label">
+            Testimonio <span class="required">*</span>
+          </label>
+          <textarea class="form-textarea"
+                    rows="5"
+                    placeholder="Escribe el testimonio del cliente..."
+                    [(ngModel)]="formData.comentario"
+                    (input)="actualizarContador()"
+                    name="comentario"
+                    maxlength="500"></textarea>
+          <div class="char-counter">
+            {{ caracteresRestantes }} caracteres restantes
+          </div>
+        </div>
+
+        <!-- Foto o Video -->
+        <div class="form-group">
+          <label class="form-label">Foto o Video (Opcional)</label>
+          <div class="media-upload">
+            <!-- Upload Foto -->
+            <div class="upload-zone" *ngIf="!mediaType || mediaType === 'foto'">
+              <input type="file"
+                     id="fotoInput"
+                     class="file-input"
+                     accept="image/*"
+                     (change)="handleFotoChange($event)">
+              <label for="fotoInput" class="upload-label">
+                <lucide-icon name="upload" [size]="32" class="upload-icon"></lucide-icon>
+                <span class="upload-text">Subir Foto</span>
+                <span class="upload-hint">JPG, PNG (máx. 5MB)</span>
+              </label>
+            </div>
+
+            <!-- Upload Video -->
+            <div class="upload-zone" *ngIf="!mediaType || mediaType === 'video'">
+              <input type="file"
+                     id="videoInput"
+                     class="file-input"
+                     accept="video/*"
+                     (change)="handleVideoChange($event)">
+              <label for="videoInput" class="upload-label">
+                <lucide-icon name="play" [size]="32" class="upload-icon"></lucide-icon>
+                <span class="upload-text">Subir Video</span>
+                <span class="upload-hint">MP4, MOV (máx. 50MB)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Preview Foto -->
+          <div class="media-preview" *ngIf="previewFoto">
+            <img [src]="previewFoto" alt="Preview" class="preview-image">
+            <button type="button"
+                    class="btn-remove"
+                    (click)="eliminarFoto()">
+              <lucide-icon name="x" [size]="16"></lucide-icon>
+            </button>
+          </div>
+
+          <!-- Preview Video -->
+          <div class="media-preview" *ngIf="mediaType === 'video' && formData.videoUrl">
+            <div class="video-placeholder">
+              <lucide-icon name="play-circle" [size]="48"></lucide-icon>
+              <p>Video cargado</p>
+            </div>
+            <button type="button"
+                    class="btn-remove"
+                    (click)="eliminarVideo()">
+              <lucide-icon name="x" [size]="16"></lucide-icon>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrar()" type="button">
+        Cancelar
+      </button>
+      <button class="btn-primary" (click)="guardar()" type="button">
+        <lucide-icon name="check" [size]="18"></lucide-icon>
+        <span>{{ modoEdicion ? 'Guardar Cambios' : 'Publicar' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

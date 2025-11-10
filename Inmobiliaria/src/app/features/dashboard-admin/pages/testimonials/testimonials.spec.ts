@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Testimonials } from './testimonials';
+import { TestimonialsComponent } from './testimonials';  // ← CAMBIAR ESTO
 
-describe('Testimonials', () => {
-  let component: Testimonials;
-  let fixture: ComponentFixture<Testimonials>;
+describe('TestimonialsComponent', () => {  // ← CAMBIAR ESTO
+  let component: TestimonialsComponent;  // ← CAMBIAR ESTO
+  let fixture: ComponentFixture<TestimonialsComponent>;  // ← CAMBIAR ESTO
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [Testimonials]
+      declarations: [TestimonialsComponent]  // ← CAMBIAR ESTO
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(Testimonials);
+    fixture = TestBed.createComponent(TestimonialsComponent);  // ← CAMBIAR ESTO
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

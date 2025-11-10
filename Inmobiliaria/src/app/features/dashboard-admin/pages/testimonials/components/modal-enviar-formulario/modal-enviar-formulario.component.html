@@ -1,0 +1,75 @@
+<!-- Overlay -->
+<div class="overlay" (click)="cerrar()" *ngIf="isVisible">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title">Enviar Formulario de Testimonio</h2>
+        <p class="modal-subtitle">Selecciona el cliente que recibirá el formulario</p>
+      </div>
+      <button class="btn-close" (click)="cerrar()" type="button">
+        <lucide-icon name="x" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-content">
+      <!-- Search -->
+      <div class="search-container">
+        <lucide-icon name="search" [size]="18" class="search-icon"></lucide-icon>
+        <input type="text"
+               class="search-input"
+               placeholder="Buscar por nombre o email..."
+               [(ngModel)]="busqueda"
+               (input)="filtrarUsuarios()">
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando clientes...</p>
+      </div>
+
+      <!-- Lista de Usuarios -->
+      <div *ngIf="!loading" class="usuarios-lista">
+        <div *ngFor="let usuario of usuariosFiltrados"
+             class="usuario-item"
+             [class.selected]="usuarioSeleccionado?.idUsuario === usuario.idUsuario"
+             (click)="seleccionarUsuario(usuario)">
+
+          <div class="avatar">{{ getInitials(usuario.nombreCompleto) }}</div>
+
+          <div class="usuario-info">
+            <p class="usuario-nombre">{{ usuario.nombreCompleto }}</p>
+            <p class="usuario-email">{{ usuario.email }}</p>
+          </div>
+
+          <div class="checkmark" *ngIf="usuarioSeleccionado?.idUsuario === usuario.idUsuario">
+            <lucide-icon name="check" [size]="18"></lucide-icon>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="usuariosFiltrados.length === 0" class="empty">
+          <lucide-icon name="user-x" [size]="40" class="empty-icon"></lucide-icon>
+          <p>No se encontraron clientes</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrar()" type="button">
+        Cancelar
+      </button>
+      <button class="btn-primary"
+              [disabled]="!usuarioSeleccionado || enviando"
+              (click)="enviarFormulario()"
+              type="button">
+        <lucide-icon name="send" [size]="18" *ngIf="!enviando"></lucide-icon>
+        <div class="spinner-small" *ngIf="enviando"></div>
+        <span>{{ enviando ? 'Enviando...' : 'Enviar Formulario' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

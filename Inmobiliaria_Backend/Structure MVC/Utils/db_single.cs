@@ -14,7 +14,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Utils
     {
         private static readonly string connectionString =
             "Server=localhost;" +
-            "Port=3306;" +
+            "Port=3307;" +
             "Database=waaa;" +
             "User Id=root;" +
             "Password=;" +

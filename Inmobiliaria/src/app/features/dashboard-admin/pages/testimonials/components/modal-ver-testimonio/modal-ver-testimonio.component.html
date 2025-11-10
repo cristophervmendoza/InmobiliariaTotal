@@ -1,0 +1,88 @@
+<!-- Overlay -->
+<div class="overlay" (click)="cerrar()" *ngIf="isVisible && testimonio">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle del Testimonio</h2>
+      <button class="btn-close" (click)="cerrar()" type="button">
+        <lucide-icon name="x" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-content">
+      <!-- Cliente Section -->
+      <div class="cliente-section">
+        <div class="avatar-large">{{ getInitials(testimonio.nombreCompleto) }}</div>
+
+        <div class="info-group">
+          <div class="info-item">
+            <lucide-icon name="user" [size]="18" class="icon"></lucide-icon>
+            <span class="info-text">{{ testimonio.nombreCompleto }}</span>
+          </div>
+
+          <div class="info-item">
+            <lucide-icon name="mail" [size]="18" class="icon"></lucide-icon>
+            <span class="info-text">{{ testimonio.email }}</span>
+          </div>
+
+          <div class="info-item">
+            <lucide-icon name="calendar" [size]="18" class="icon"></lucide-icon>
+            <span class="info-text">{{ formatearFecha(testimonio.fecha) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Valoración -->
+      <div class="valoracion-section">
+        <h3 class="section-title">Valoración</h3>
+        <div class="stars-container">
+          <div class="stars">
+            <lucide-icon *ngFor="let star of getEstrellas()"
+                         name="star"
+                         [size]="24"
+                         [class.star-filled]="star <= testimonio.valoracion">
+            </lucide-icon>
+          </div>
+          <span class="valoracion-text">{{ testimonio.valoracion }} de 5 estrellas</span>
+        </div>
+      </div>
+
+      <!-- Testimonio -->
+      <div class="testimonio-section">
+        <h3 class="section-title">Testimonio</h3>
+        <div class="testimonio-content">
+          <p>"{{ testimonio.contenido }}"</p>
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="estado-section">
+        <span class="badge-estado"
+              [class.badge-pendiente]="testimonio.estado === 'pendiente'"
+              [class.badge-rechazado]="testimonio.estado === 'rechazado'">
+          {{ testimonio.estado === 'pendiente' ? '⏳ Pendiente' : '✗ Rechazado' }}
+        </span>
+      </div>
+
+      <!-- Info Box -->
+      <div class="info-box">
+        <lucide-icon name="info" [size]="20" class="info-box-icon"></lucide-icon>
+        <div class="info-box-content">
+          <p class="info-box-title">Nota:</p>
+          <p class="info-box-text">
+            Para publicar este testimonio en la página web, deberás copiarlo y crear una nueva publicación
+            con los datos del cliente y su testimonio.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="cerrar()" type="button">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

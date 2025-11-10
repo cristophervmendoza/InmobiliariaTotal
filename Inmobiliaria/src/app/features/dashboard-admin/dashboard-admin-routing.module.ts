@@ -15,7 +15,7 @@ import { PropertiesAdmin } from './pages/properties-admin/properties-admin';
 import { Quotes } from './pages/quotes/quotes';
 import { Reports } from './pages/reports/reports';
 import { Requestadvisors } from './pages/requestadvisors/requestadvisors';
-import { Testimonials } from './pages/testimonials/testimonials';
+import { TestimonialsComponent } from './pages/testimonials/testimonials';  // ← CORREGIDO
 import { Configurations } from './pages/configurations/configurations';
 import { Profile } from './pages/profile/profile';
 
@@ -41,7 +41,7 @@ const routes: Routes = [
       { path: 'management', component: Management },
       { path: 'quotes', component: Quotes },
       { path: 'requestadvisors', component: Requestadvisors },
-      { path: 'testimonials', component: Testimonials },
+      { path: 'testimonials', component: TestimonialsComponent },  // ← CORREGIDO
       { path: 'configurations', component: Configurations },
       { path: 'profile', component: Profile },
     ]

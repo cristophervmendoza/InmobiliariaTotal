@@ -1,149 +1,257 @@
 import { Component, OnInit } from '@angular/core';
-
-type EstadoTestimonio = 'Publicado' | 'Pendiente' | 'Oculto';
-
-interface Testimonio {
-  id: number;
-  cliente: string;
-  contenido: string;
-  valoracion: number; // 1..5
-  fecha: string;      // ISO o yyyy-mm-dd
-  propiedad?: string;
-  estado: EstadoTestimonio;
-}
+import { TestimonioRecibido, TestimonioPublicado } from './models/testimonio.interface';
 
 @Component({
-  selector: 'app-testimonies',
+  selector: 'app-testimonials',
   standalone: false,
   templateUrl: './testimonials.html',
   styleUrls: ['./testimonials.css']
 })
-export class Testimonials implements OnInit {
-  // Datos
-  testimonios: Testimonio[] = [];
+export class TestimonialsComponent implements OnInit {  // ← CAMBIA AQUÍ
+
+  activeTab: 'recepcion' | 'publicaciones' = 'recepcion';
   loading = true;
 
-  // Filtros
-  filtroTexto = '';
-  filtroEstado: 'Todos' | EstadoTestimonio = 'Todos';
-  filtroValorMin = 0;
+  // Datos
+  testimoniosRecibidos: TestimonioRecibido[] = [];
+  testimoniosPublicados: TestimonioPublicado[] = [];
 
-  // Modal y formulario
-  mostrarForm = false;
-  editando: Testimonio | null = null;
-
-  // Form state
-  form = {
-    cliente: '',
-    contenido: '',
-    valoracion: 5,
-    fecha: '',
-    propiedad: '',
-    estado: 'Publicado' as EstadoTestimonio
-  };
+  // Modales
+  showModalEnviar = false;
+  showModalVer = false;
+  showModalPublicar = false;
+  testimonioSeleccionado: TestimonioRecibido | null = null;
+  testimonioParaPublicar: TestimonioRecibido | TestimonioPublicado | null = null;
 
   ngOnInit(): void {
-    // Simulación de carga (lazy)
-    setTimeout(() => {
-      this.testimonios = [
-        { id: 1, cliente: 'Carlos M.', contenido: 'Excelente servicio, muy recomendados.', valoracion: 5, fecha: '2025-10-01', propiedad: 'Dpto. Miraflores', estado: 'Publicado' },
-        { id: 2, cliente: 'Rosa P.', contenido: 'Atención rápida y confiable.', valoracion: 4, fecha: '2025-10-12', propiedad: 'Casa La Molina', estado: 'Publicado' },
-        { id: 3, cliente: 'Luis T.', contenido: 'Todo bien, aunque demoró un poco.', valoracion: 3, fecha: '2025-10-18', propiedad: 'Terreno Lurín', estado: 'Pendiente' },
-        { id: 4, cliente: 'Andrea R.', contenido: 'El proceso fue claro y eficiente.', valoracion: 5, fecha: '2025-11-02', propiedad: 'Dpto. Barranco', estado: 'Publicado' }
-      ];
+    this.cargarDatos();
+  }
+
+  // ============================================
+  // CARGAR DATOS
+  // ============================================
+
+  async cargarDatos(): Promise<void> {
+    this.loading = true;
+
+    try {
+      // TODO: Conectar con API C# usando el service
+      // import { TestimonialsService } from './services/testimonials.service';
+      // constructor(private testimonialsService: TestimonialsService) {}
+      // this.testimonialsService.getTodosTestimonios().subscribe(...)
+
+      // Datos mock temporales
+      setTimeout(() => {
+        this.testimoniosRecibidos = [
+          {
+            idTestimonio: 1,
+            idUsuario: 101,
+            nombreCompleto: 'Juan Pérez González',
+            email: 'juan.perez@gmail.com',
+            contenido: 'Excelente servicio, muy profesionales. Me mantuvieron informado en cada paso del proceso de venta.',
+            valoracion: 5,
+            fecha: '2025-01-11T10:30:00',
+            estado: 'pendiente'
+          },
+          {
+            idTestimonio: 2,
+            idUsuario: 102,
+            nombreCompleto: 'María González López',
+            email: 'maria.gonzalez@gmail.com',
+            contenido: 'Muy satisfecha con el resultado. Proceso transparente y rápido. Totalmente recomendados.',
+            valoracion: 5,
+            fecha: '2025-10-28T15:20:00',
+            estado: 'pendiente'
+          },
+          {
+            idTestimonio: 3,
+            idUsuario: 103,
+            nombreCompleto: 'Carlos Rodríguez',
+            email: 'carlos.r@gmail.com',
+            contenido: 'Buen servicio en general, aunque el proceso tomó más tiempo del esperado.',
+            valoracion: 4,
+            fecha: '2025-09-15T09:15:00',
+            estado: 'rechazado'
+          }
+        ];
+
+        this.testimoniosPublicados = [
+          {
+            idTestimonio: 10,
+            nombre: 'Luis Martínez',
+            ubicacion: 'Barranco, Lima',
+            valoracion: 5,
+            comentario: 'Proceso muy transparente y profesional. Me mantuvieron informado en cada paso y lograron vender mi local en tiempo récord.',
+            tipoPropiedad: 'Local comercial',
+            tiempo: '28 días',
+            fotoUrl: undefined,
+            creadoAt: '2025-01-05T00:00:00'
+          },
+          {
+            idTestimonio: 11,
+            nombre: 'Ana Flores',
+            ubicacion: 'Miraflores, Lima',
+            valoracion: 5,
+            comentario: 'Increíble experiencia. El equipo fue muy atento y logró superar mis expectativas. Recomiendo 100%.',
+            tipoPropiedad: 'Departamento',
+            tiempo: '35 días',
+            fotoUrl: undefined,
+            creadoAt: '2024-12-20T00:00:00'
+          }
+        ];
+
+        this.loading = false;
+      }, 1000);
+    } catch (error) {
+      console.error('Error cargando datos:', error);
       this.loading = false;
-    }, 800);
-  }
-
-  // Métricas
-  get total(): number { return this.testimonios.length; }
-  get publicados(): number { return this.testimonios.filter(t => t.estado === 'Publicado').length; }
-  get pendientes(): number { return this.testimonios.filter(t => t.estado === 'Pendiente').length; }
-  get ocultos(): number { return this.testimonios.filter(t => t.estado === 'Oculto').length; }
-  get promedio(): number {
-    const arr = this.testimonios;
-    if (!arr.length) return 0;
-    const s = arr.reduce((acc, t) => acc + (Number(t.valoracion) || 0), 0);
-    return Math.round((s / arr.length) * 10) / 10;
-  }
-
-  // Filtro compuesto
-  get listaFiltrada(): Testimonio[] {
-    const q = this.filtroTexto.trim().toLowerCase();
-    const min = Math.max(0, Math.min(5, Number(this.filtroValorMin) || 0));
-    return this.testimonios.filter(t => {
-      const coincideTexto = !q
-        || t.cliente.toLowerCase().includes(q)
-        || t.contenido.toLowerCase().includes(q)
-        || (t.propiedad || '').toLowerCase().includes(q);
-      const coincideEstado = this.filtroEstado === 'Todos' || t.estado === this.filtroEstado;
-      const coincideValor = (Number(t.valoracion) || 0) >= min;
-      return coincideTexto && coincideEstado && coincideValor;
-    });
-  }
-
-  // Helpers
-  estrellas(valor: number): number[] {
-    const v = Math.max(0, Math.min(5, Math.floor(Number(valor) || 0)));
-    return Array.from({ length: 5 }, (_, i) => i < v ? 1 : 0);
-  }
-  claseEstado(estado: EstadoTestimonio) {
-    switch (estado) {
-      case 'Publicado': return 'badge aprobado';
-      case 'Pendiente': return 'badge pendiente';
-      case 'Oculto': return 'badge rechazado';
     }
   }
 
-  // Acciones
-  abrirNuevo() {
-    this.editando = null;
-    this.form = { cliente: '', contenido: '', valoracion: 5, fecha: '', propiedad: '', estado: 'Publicado' };
-    this.mostrarForm = true;
+  // ============================================
+  // MODALES - ENVIAR FORMULARIO
+  // ============================================
+
+  abrirModalEnviar(): void {
+    this.showModalEnviar = true;
   }
-  abrirEditar(t: Testimonio) {
-    this.editando = { ...t };
-    this.form = {
-      cliente: t.cliente,
-      contenido: t.contenido,
-      valoracion: t.valoracion,
-      fecha: t.fecha,
-      propiedad: t.propiedad || '',
-      estado: t.estado
+
+  cerrarModalEnviar(): void {
+    this.showModalEnviar = false;
+  }
+
+  onFormularioEnviado(): void {
+    console.log('Formulario enviado correctamente');
+    // Mostrar notificación de éxito (opcional)
+    alert('Formulario enviado exitosamente al cliente');
+  }
+
+  // ============================================
+  // MODALES - VER TESTIMONIO
+  // ============================================
+
+  verTestimonio(testimonio: TestimonioRecibido): void {
+    this.testimonioSeleccionado = testimonio;
+    this.showModalVer = true;
+  }
+
+  cerrarModalVer(): void {
+    this.showModalVer = false;
+    this.testimonioSeleccionado = null;
+  }
+
+  // ============================================
+  // MODALES - PUBLICAR/EDITAR TESTIMONIO
+  // ============================================
+
+  abrirModalPublicar(testimonio: TestimonioRecibido | TestimonioPublicado | null): void {
+    this.testimonioParaPublicar = testimonio;
+    this.showModalPublicar = true;
+  }
+
+  cerrarModalPublicar(): void {
+    this.showModalPublicar = false;
+    this.testimonioParaPublicar = null;
+  }
+
+  onTestimonioPublicado(datos: TestimonioPublicado): void {
+    console.log('Testimonio publicado:', datos);
+
+    // TODO: Guardar en backend
+    // this.testimonialsService.publicarTestimonio(datos).subscribe(...)
+
+    // Agregar a la lista de publicados (temporal)
+    const nuevoTestimonio: TestimonioPublicado = {
+      idTestimonio: this.testimoniosPublicados.length + 1,
+      ...datos,
+      creadoAt: new Date().toISOString()
     };
-    this.mostrarForm = true;
-  }
-  cerrarForm() { this.mostrarForm = false; this.editando = null; }
 
-  guardarForm() {
-    if (!this.form.cliente || !this.form.contenido || !this.form.fecha) {
-      alert('Cliente, contenido y fecha son obligatorios');
-      return;
-    }
-    const payload: Testimonio = {
-      id: this.editando ? this.editando.id : this.genId(),
-      cliente: this.form.cliente,
-      contenido: this.form.contenido,
-      valoracion: Math.max(1, Math.min(5, Number(this.form.valoracion) || 1)),
-      fecha: this.form.fecha,
-      propiedad: this.form.propiedad || '',
-      estado: this.form.estado
-    };
-    if (this.editando) {
-      this.testimonios = this.testimonios.map(t => t.id === this.editando!.id ? payload : t);
-    } else {
-      this.testimonios = [payload, ...this.testimonios];
-    }
-    this.cerrarForm();
-  }
-  eliminar(id: number) {
-    const ok = confirm('¿Eliminar este testimonio?');
-    if (!ok) return;
-    this.testimonios = this.testimonios.filter(t => t.id !== id);
-  }
-  cambiarEstado(id: number, estado: EstadoTestimonio) {
-    this.testimonios = this.testimonios.map(t => t.id === id ? { ...t, estado } : t);
+    this.testimoniosPublicados.unshift(nuevoTestimonio);
+
+    // Cambiar a tab de publicaciones
+    this.activeTab = 'publicaciones';
+
+    // Mostrar notificación
+    alert('Testimonio publicado exitosamente');
   }
 
-  genId() { return Math.max(0, ...this.testimonios.map(t => t.id)) + 1; }
+  // ============================================
+  // ACCIONES - TESTIMONIOS RECIBIDOS
+  // ============================================
+
+  async rechazarTestimonio(idTestimonio: number): Promise<void> {
+    if (!confirm('¿Estás seguro de rechazar este testimonio?')) return;
+
+    try {
+      // TODO: Llamar API
+      // await this.testimonialsService.rechazarTestimonio(idTestimonio).subscribe(...)
+
+      // Actualizar estado localmente (temporal)
+      const testimonio = this.testimoniosRecibidos.find(t => t.idTestimonio === idTestimonio);
+      if (testimonio) {
+        testimonio.estado = 'rechazado';
+      }
+
+      console.log('Testimonio rechazado:', idTestimonio);
+      alert('Testimonio rechazado');
+    } catch (error) {
+      console.error('Error rechazando testimonio:', error);
+      alert('Error al rechazar el testimonio');
+    }
+  }
+
+  // ============================================
+  // ACCIONES - TESTIMONIOS PUBLICADOS
+  // ============================================
+
+  editarPublicacion(testimonio: TestimonioPublicado): void {
+    this.abrirModalPublicar(testimonio);
+  }
+
+  async eliminarPublicacion(idTestimonio: number): Promise<void> {
+    if (!confirm('¿Estás seguro de eliminar esta publicación?')) return;
+
+    try {
+      // TODO: Llamar API
+      // await this.testimonialsService.eliminarTestimonio(idTestimonio).subscribe(...)
+
+      // Eliminar localmente (temporal)
+      this.testimoniosPublicados = this.testimoniosPublicados.filter(
+        t => t.idTestimonio !== idTestimonio
+      );
+
+      console.log('Publicación eliminada:', idTestimonio);
+      alert('Publicación eliminada');
+    } catch (error) {
+      console.error('Error eliminando publicación:', error);
+      alert('Error al eliminar la publicación');
+    }
+  }
+
+  // ============================================
+  // UTILIDADES
+  // ============================================
+
+  getInitials(nombre: string): string {
+    return nombre
+      .split(' ')
+      .map(n => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+
+  truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 }
