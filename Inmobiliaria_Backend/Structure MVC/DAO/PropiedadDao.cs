@@ -331,6 +331,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         }
 
         // Actualizar propiedad
+        // Actualizar propiedad
         public async Task<(bool exito, string mensaje)> ActualizarPropiedadAsync(Propiedad propiedad)
         {
             var connectionResult = db_single.GetConnection();
@@ -342,23 +343,29 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
             using var connection = connectionResult.Conexion;
             try
             {
-                string query = @"UPDATE propiedad SET 
-                    IdTipoPropiedad = @IdTipoPropiedad,
-                    IdEstadoPropiedad = @IdEstadoPropiedad,
-                    Titulo = @Titulo,
-                    Direccion = @Direccion,
-                    Precio = @Precio,
-                    Descripcion = @Descripcion,
-                    AreaTerreno = @AreaTerreno,
-                    TipoMoneda = @TipoMoneda,
-                    Habitacion = @Habitacion,
-                    Bano = @Bano,
-                    Estacionamiento = @Estacionamiento,
-                    FotoPropiedad = @FotoPropiedad,
-                    ActualizadoAt = @ActualizadoAt
-                    WHERE IdPropiedad = @id";
+                // ✅ AGREGADO: IdUsuario en el UPDATE
+                string query = @"
+            UPDATE propiedad 
+            SET IdUsuario = @IdUsuario,
+                IdTipoPropiedad = @IdTipoPropiedad,
+                IdEstadoPropiedad = @IdEstadoPropiedad,
+                Titulo = @Titulo,
+                Direccion = @Direccion,
+                Precio = @Precio,
+                Descripcion = @Descripcion,
+                AreaTerreno = @AreaTerreno,
+                TipoMoneda = @TipoMoneda,
+                Habitacion = @Habitacion,
+                Bano = @Bano,
+                Estacionamiento = @Estacionamiento,
+                FotoPropiedad = @FotoPropiedad,
+                ActualizadoAt = @ActualizadoAt
+            WHERE IdPropiedad = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
+
+                // ✅ AGREGADO: Parámetro IdUsuario
+                cmd.Parameters.AddWithValue("@IdUsuario", propiedad.IdUsuario);
                 cmd.Parameters.AddWithValue("@id", propiedad.IdPropiedad);
                 cmd.Parameters.AddWithValue("@IdTipoPropiedad", propiedad.IdTipoPropiedad);
                 cmd.Parameters.AddWithValue("@IdEstadoPropiedad", propiedad.IdEstadoPropiedad);
@@ -388,6 +395,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                 return (false, $"Error al actualizar propiedad: {ex.Message}");
             }
         }
+
 
         // Eliminar propiedad
         public async Task<(bool exito, string mensaje)> EliminarPropiedadAsync(int id)

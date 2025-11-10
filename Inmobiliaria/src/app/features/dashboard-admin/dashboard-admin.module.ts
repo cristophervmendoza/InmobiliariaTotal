@@ -90,12 +90,19 @@ import {
   AlertTriangle,
   X,
 
-  // ✅ Employees (COMPLETOS)
+  // ✅ Employees
   Upload,
   ToggleLeft,
   ToggleRight,
   Save,
-  UsersRound
+  UsersRound,
+
+  // ✅ PROPERTIES ADMIN (NUEVOS)
+  Maximize2,      // Icono de área/tamaño
+  Bed,            // Icono de habitaciones
+  Bath,           // Icono de baños
+  Car,            // Icono de estacionamiento
+  Check           // Check para selección de agente
 } from 'lucide-angular';
 
 @NgModule({
@@ -186,7 +193,14 @@ import {
       ToggleLeft,
       ToggleRight,
       Save,
-      UsersRound
+      UsersRound,
+
+      // ✅ PROPERTIES ADMIN (Agregados)
+      Maximize2,
+      Bed,
+      Bath,
+      Car,
+      Check
     })
   ],
   exports: [Dashboard]

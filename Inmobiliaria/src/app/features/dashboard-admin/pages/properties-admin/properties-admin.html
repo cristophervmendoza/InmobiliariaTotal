@@ -6,13 +6,20 @@
       <p class="pageSubtitle">Gestión y visualización de inmuebles del sistema</p>
     </div>
 
-    <button class="botonExportar"
-            [disabled]="exportando || propiedadesFiltradas.length === 0"
-            (click)="handleExportar()">
-      <span-lucide *ngIf="exportando" name="loader-2" class="iconoRotando" size="20" strokeWidth="2"></span-lucide>
-      <span-lucide *ngIf="!exportando" name="file-down" size="20" strokeWidth="2"></span-lucide>
-      <span>{{ exportando ? 'Exportando...' : 'Exportar a Excel' }}</span>
-    </button>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button class="botonCrear" (click)="abrirCrear()">
+        <span-lucide name="plus" size="20" strokeWidth="2.5"></span-lucide>
+        <span>Nueva Propiedad</span>
+      </button>
+
+      <button class="botonExportar"
+              [disabled]="exportando || propiedadesFiltradas.length === 0"
+              (click)="handleExportar()">
+        <span-lucide *ngIf="exportando" name="loader-2" class="iconoRotando" size="20" strokeWidth="2"></span-lucide>
+        <span-lucide *ngIf="!exportando" name="file-down" size="20" strokeWidth="2"></span-lucide>
+        <span>{{ exportando ? 'Exportando...' : 'Exportar a Excel' }}</span>
+      </button>
+    </div>
   </div>
 
   <!-- Tarjetas estadísticas -->
@@ -101,14 +108,17 @@
             <span class="badge" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;">{{ p.vistas }}</span>
           </td>
           <td class="celda">
-            <button class="opcion" style="padding:8px 10px;background:#fff;border:1px solid #e2e8f0;"
-                    title="Ver detalles" (click)="abrirDetalle(p)">
-              <span-lucide name="eye" size="18"></span-lucide>
-            </button>
-            <button class="opcion" style="padding:8px 10px;background:#fff;border:1px solid #e2e8f0;margin-left:8px;"
-                    title="Eliminar" (click)="abrirEliminar(p)">
-              <span-lucide name="trash-2" size="18"></span-lucide>
-            </button>
+            <div class="accionesContainer">
+              <button class="botonAccion verAccion" title="Ver detalles" (click)="abrirDetalle(p)">
+                <span-lucide name="eye" size="18" strokeWidth="2"></span-lucide>
+              </button>
+              <button class="botonAccion editarAccion" title="Editar" (click)="abrirEditar(p)">
+                <span-lucide name="edit-2" size="18" strokeWidth="2"></span-lucide>
+              </button>
+              <button class="botonAccion eliminarAccion" title="Eliminar" (click)="abrirEliminar(p)">
+                <span-lucide name="trash-2" size="18" strokeWidth="2"></span-lucide>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -117,64 +127,367 @@
 
   <ng-template #estadoTpl>
     <div *ngIf="loading" class="contenedorVacio">
+      <span-lucide name="loader-2" class="iconoRotando" size="48" strokeWidth="2" style="color: #94a3b8; margin-bottom: 16px;"></span-lucide>
       <p class="mensajeVacio">Cargando propiedades...</p>
     </div>
     <div *ngIf="!loading && !propiedadesFiltradas.length" class="contenedorVacio">
+      <span-lucide name="home" size="48" strokeWidth="1.5" style="color: #94a3b8; margin-bottom: 16px;"></span-lucide>
       <p class="mensajeVacio">No se encontraron propiedades con los filtros actuales</p>
+      <button class="botonCrear" style="margin-top: 16px;" (click)="abrirCrear()">
+        <span-lucide name="plus" size="18" strokeWidth="2.5"></span-lucide>
+        <span>Crear Primera Propiedad</span>
+      </button>
     </div>
   </ng-template>
 
   <!-- Modal Detalle -->
-  <div class="overlay" *ngIf="modalDetalleAbierto && seleccionado as sel">
-    <div class="modal">
+  <div class="overlay" *ngIf="modalDetalleAbierto && seleccionado as sel" (click)="cerrarDetalle()">
+    <div class="modalDetalle" (click)="$event.stopPropagation()">
       <div class="imagenContainer">
-        <img [src]="(sel.imagenes && sel.imagenes.length ? sel.imagenes[0] : '/placeholder.jpg')" [alt]="sel.titulo" class="imagen" />
+        <img [src]="(sel.imagenes && sel.imagenes.length ? sel.imagenes[0] : '/placeholder.jpg')"
+             [alt]="sel.titulo"
+             class="imagen" />
+        <div class="imagenOverlay">
+          <span class="badge" [ngClass]="estadoClaseBadge(sel.estado)">{{ sel.estado | titlecase }}</span>
+        </div>
       </div>
 
-      <div class="contenido" style="padding:16px;flex-direction:column;gap:12px;">
-        <h2 class="pageTitle" style="font-size:20px;margin:0;">{{ sel.titulo }}</h2>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span [class]="estadoClaseBadge(sel.estado)">{{ sel.estado | titlecase }}</span>
-          <span class="badge" style="background:#ecfeff;color:#155e75;border-color:#a5f3fc;">{{ sel.tipo }}</span>
-          <span class="badge" style="background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">{{ sel.codigo }}</span>
+      <div class="detalleContenido">
+        <div class="detalleHeader">
+          <div>
+            <h2 class="pageTitle" style="font-size:24px;margin:0 0 8px 0;">{{ sel.titulo }}</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <span class="badge" style="background:#ecfeff;color:#155e75;border-color:#a5f3fc;">{{ sel.tipo }}</span>
+              <span class="badge" style="background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">{{ sel.codigo }}</span>
+            </div>
+          </div>
+          <button (click)="cerrarDetalle()" class="botonCerrar">
+            <span-lucide name="x" size="20" strokeWidth="2.5"></span-lucide>
+          </button>
         </div>
 
-        <div class="descripcionBox">
-          <p style="margin:0;color:#0f172a;">{{ sel.direccion }}, {{ sel.distrito }}</p>
-        </div>
+        <div class="precioDestacado">{{ precioStr(sel) }}</div>
 
-        <div>
-          <h3 class="titulo" style="text-transform:none;">Características</h3>
-          <div class="detallesGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <p class="celda"><strong>Área:</strong> {{ sel.area }} m²</p>
-            <p class="celda"><strong>Habitaciones:</strong> {{ sel.habitaciones }}</p>
-            <p class="celda"><strong>Baños:</strong> {{ sel.banos }}</p>
-            <p class="celda"><strong>Agente:</strong> {{ sel.agente }}</p>
+        <div class="ubicacionBox">
+          <span-lucide name="map-pin" size="20" style="color:#10b981;flex-shrink:0;"></span-lucide>
+          <div>
+            <div style="font-weight:600;color:#0f172a;">{{ sel.direccion }}</div>
+            <div style="color:#64748b;font-size:13px;margin-top:2px;">{{ sel.distrito }}</div>
           </div>
         </div>
 
-        <div style="font-weight:700;color:#0f172a;">{{ precioStr(sel) }}</div>
-      </div>
+        <div class="caracteristicasGrid">
+          <div class="caracteristicaItem">
+            <span-lucide name="maximize-2" size="20" style="color:#06b6d4;"></span-lucide>
+            <div>
+              <div class="caracLabel">Área</div>
+              <div class="caracValor">{{ sel.area }} m²</div>
+            </div>
+          </div>
+          <div class="caracteristicaItem">
+            <span-lucide name="bed" size="20" style="color:#8b5cf6;"></span-lucide>
+            <div>
+              <div class="caracLabel">Habitaciones</div>
+              <div class="caracValor">{{ sel.habitaciones }}</div>
+            </div>
+          </div>
+          <div class="caracteristicaItem">
+            <span-lucide name="bath" size="20" style="color:#3b82f6;"></span-lucide>
+            <div>
+              <div class="caracLabel">Baños</div>
+              <div class="caracValor">{{ sel.banos }}</div>
+            </div>
+          </div>
+          <div class="caracteristicaItem">
+            <span-lucide name="car" size="20" style="color:#f59e0b;"></span-lucide>
+            <div>
+              <div class="caracLabel">Estacionamiento</div>
+              <div class="caracValor">{{ sel.estacionamiento || 0 }}</div>
+            </div>
+          </div>
+        </div>
 
-      <div class="footer">
-        <button (click)="cerrarDetalle()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;">✖ Cerrar</button>
+        <div class="seccionDetalle" *ngIf="sel.descripcion">
+          <h3 class="seccionTitulo">Descripción</h3>
+          <p class="descripcionTexto">{{ sel.descripcion }}</p>
+        </div>
+
+        <div class="seccionDetalle">
+          <h3 class="seccionTitulo">Agente Responsable</h3>
+          <div class="agenteCard">
+            <div class="agenteAvatar" style="width:48px;height:48px;">
+              <span-lucide name="user" size="24"></span-lucide>
+            </div>
+            <div>
+              <div style="font-weight:600;color:#0f172a;font-size:15px;">{{ sel.agenteNombre || 'Sin asignar' }}</div>
+              <div style="color:#64748b;font-size:13px;margin-top:2px;">Agente Inmobiliario</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="seccionDetalle">
+          <h3 class="seccionTitulo">Información Adicional</h3>
+          <div class="infoGrid">
+            <div class="infoItem">
+              <span class="infoLabel">Publicación:</span>
+              <span class="infoValor">{{ sel.fechaPublicacion }}</span>
+            </div>
+            <div class="infoItem">
+              <span class="infoLabel">Vistas:</span>
+              <span class="infoValor">{{ sel.vistas }}</span>
+            </div>
+            <div class="infoItem">
+              <span class="infoLabel">ID Propiedad:</span>
+              <span class="infoValor">{{ sel.idPropiedad }}</span>
+            </div>
+            <div class="infoItem">
+              <span class="infoLabel">Última actualización:</span>
+              <span class="infoValor">{{ formatearFecha(sel.actualizadoAt) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="accionesFooter">
+          <button (click)="abrirEditar(sel); cerrarDetalle();" class="botonSecundario">
+            <span-lucide name="edit-2" size="18" strokeWidth="2"></span-lucide>
+            <span>Editar</span>
+          </button>
+          <button (click)="abrirEliminar(sel); cerrarDetalle();" class="botonPeligro">
+            <span-lucide name="trash-2" size="18" strokeWidth="2"></span-lucide>
+            <span>Eliminar</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Modal Eliminar -->
-  <div class="overlay" *ngIf="modalEliminarAbierto && seleccionado as selDel">
-    <div class="modal" style="grid-template-columns:1fr;">
-      <div class="contenido" style="padding:16px;flex-direction:column;gap:12px;">
-        <h2 class="pageTitle" style="font-size:20px;margin:0;">Eliminar Propiedad</h2>
-        <p>¿Seguro que deseas eliminar la propiedad <strong>{{ selDel.titulo }}</strong> ({{ selDel.codigo }})?</p>
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button (click)="cerrarEliminar()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;">Cancelar</button>
-          <button (click)="confirmarEliminar()" class="opcion" style="background:#fff;border:1px solid #e2e8f0;color:#b91c1c;">
-            <span-lucide name="trash-2" size="18"></span-lucide>
-            <span class="label">Eliminar</span>
-          </button>
+  <div class="overlay" *ngIf="modalEliminarAbierto && seleccionado as selDel" (click)="cerrarEliminar()">
+    <div class="modalPequeno" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <div class="iconoAlerta">
+          <span-lucide name="alert-triangle" size="28" strokeWidth="2.5"></span-lucide>
         </div>
+        <h2 class="pageTitle" style="font-size:20px;margin:0;">Eliminar Propiedad</h2>
+      </div>
+
+      <div class="modalBody">
+        <p style="margin:0;color:#475569;line-height:1.6;">
+          ¿Estás seguro de que deseas eliminar la propiedad
+          <strong style="color:#0f172a;">{{ selDel.titulo }}</strong>
+          <span class="badge" style="margin-left:4px;">{{ selDel.codigo }}</span>?
+        </p>
+        <p style="margin:8px 0 0 0;color:#ef4444;font-size:13px;font-weight:500;">
+          Esta acción no se puede deshacer.
+        </p>
+      </div>
+
+      <div class="modalFooter">
+        <button (click)="cerrarEliminar()" class="botonSecundario">Cancelar</button>
+        <button (click)="confirmarEliminar()" class="botonPeligro">
+          <span-lucide name="trash-2" size="18" strokeWidth="2"></span-lucide>
+          <span>Eliminar Propiedad</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Crear/Editar -->
+  <div class="overlay" *ngIf="modalFormularioAbierto" (click)="cerrarFormulario()">
+    <div class="modalFormulario" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h2 class="pageTitle" style="font-size:20px;margin:0;">
+          {{ editandoPropiedad ? 'Editar Propiedad' : 'Nueva Propiedad' }}
+        </h2>
+        <button (click)="cerrarFormulario()" class="botonCerrar">
+          <span-lucide name="x" size="20" strokeWidth="2.5"></span-lucide>
+        </button>
+      </div>
+
+      <div class="modalBody" style="max-height:500px;overflow-y:auto;">
+        <p style="margin:0 0 16px 0;color:#64748b;font-size:14px;">
+          Los campos marcados con <span style="color:#ef4444;">*</span> son obligatorios
+        </p>
+
+        <div class="formularioGrid">
+          <!-- Título -->
+          <div class="formGroup fullWidth">
+            <label>Título *</label>
+            <input type="text"
+                   [(ngModel)]="formData.titulo"
+                   placeholder="Ej: Casa moderna en San Isidro"
+                   [class.inputError]="!!errors['titulo']" />
+            <span class="error" *ngIf="errors['titulo']">{{ errors['titulo'] }}</span>
+          </div>
+
+          <!-- Tipo -->
+          <div class="formGroup">
+            <label>Tipo *</label>
+            <select [(ngModel)]="formData.idTipoPropiedad"
+                    [class.inputError]="!!errors['idTipoPropiedad']">
+              <option [value]="0">Seleccionar...</option>
+              <option [value]="1">Casa</option>
+              <option [value]="2">Departamento</option>
+              <option [value]="3">Terreno</option>
+              <option [value]="4">Otro</option>
+            </select>
+            <span class="error" *ngIf="errors['idTipoPropiedad']">{{ errors['idTipoPropiedad'] }}</span>
+          </div>
+
+          <!-- Estado -->
+          <div class="formGroup">
+            <label>Estado *</label>
+            <select [(ngModel)]="formData.idEstadoPropiedad">
+              <option [value]="1">Activa</option>
+              <option [value]="2">Reservada</option>
+              <option [value]="3">Vendida</option>
+              <option [value]="4">Pausada</option>
+              <option [value]="5">Cerrada</option>
+            </select>
+          </div>
+
+          <!-- Precio -->
+          <div class="formGroup">
+            <label>Precio *</label>
+            <input type="number"
+                   [(ngModel)]="formData.precio"
+                   placeholder="0.00"
+                   min="0"
+                   step="0.01"
+                   [class.inputError]="!!errors['precio']" />
+            <span class="error" *ngIf="errors['precio']">{{ errors['precio'] }}</span>
+          </div>
+
+          <!-- Moneda -->
+          <div class="formGroup">
+            <label>Moneda *</label>
+            <select [(ngModel)]="formData.tipoMoneda">
+              <option value="PEN">Soles (S/)</option>
+              <option value="USD">Dólares ($)</option>
+              <option value="EUR">Euros (€)</option>
+            </select>
+          </div>
+
+          <!-- Agente con búsqueda -->
+          <div class="formGroup fullWidth">
+            <label>Agente Asignado *</label>
+            <div class="agenteSearchContainer">
+              <div class="agenteInputWrapper">
+                <span-lucide name="user" size="18" class="searchIcon"></span-lucide>
+                <input type="text"
+                       [(ngModel)]="busquedaAgente"
+                       (input)="onBusquedaAgenteChange()"
+                       (focus)="mostrarDropdownAgente = true"
+                       placeholder="Buscar agente por nombre, email o DNI..."
+                       [class.inputError]="!!errors['idUsuario']"
+                       autocomplete="off" />
+                <button *ngIf="agenteSeleccionado"
+                        type="button"
+                        (click)="limpiarAgente()"
+                        class="btnLimpiar">
+                  <span-lucide name="x" size="16"></span-lucide>
+                </button>
+              </div>
+
+              <div class="agenteDropdown" *ngIf="mostrarDropdownAgente && empleadosFiltrados.length > 0">
+                <div class="agenteItem"
+                     *ngFor="let empleado of empleadosFiltrados"
+                     (click)="seleccionarAgente(empleado)">
+                  <div class="agenteAvatar">
+                    <span-lucide name="user" size="20"></span-lucide>
+                  </div>
+                  <div class="agenteInfo">
+                    <div class="agenteNombre">{{ empleado.nombre }}</div>
+                    <div class="agenteDetalles">{{ empleado.email }} • DNI: {{ empleado.dni }}</div>
+                  </div>
+                  <span-lucide name="check"
+                               size="18"
+                               *ngIf="agenteSeleccionado?.idUsuario === empleado.idUsuario"
+                               style="color:#10b981;"></span-lucide>
+                </div>
+              </div>
+
+              <div class="agenteSeleccionadoBadge" *ngIf="agenteSeleccionado">
+                <span-lucide name="check-circle" size="16" style="color:#10b981;"></span-lucide>
+                <span>{{ agenteSeleccionado.nombre }}</span>
+              </div>
+            </div>
+            <span class="error" *ngIf="errors['idUsuario']">{{ errors['idUsuario'] }}</span>
+          </div>
+
+          <!-- Dirección -->
+          <div class="formGroup fullWidth">
+            <label>Dirección *</label>
+            <input type="text"
+                   [(ngModel)]="formData.direccion"
+                   placeholder="Av. Principal 123, Distrito, Ciudad"
+                   [class.inputError]="!!errors['direccion']" />
+            <span class="error" *ngIf="errors['direccion']">{{ errors['direccion'] }}</span>
+          </div>
+
+          <!-- Área -->
+          <div class="formGroup">
+            <label>Área (m²)</label>
+            <input type="number"
+                   [(ngModel)]="formData.areaTerreno"
+                   placeholder="0"
+                   min="0" />
+          </div>
+
+          <!-- Habitaciones -->
+          <div class="formGroup">
+            <label>Habitaciones</label>
+            <input type="number"
+                   [(ngModel)]="formData.habitacion"
+                   placeholder="0"
+                   min="0" />
+          </div>
+
+          <!-- Baños -->
+          <div class="formGroup">
+            <label>Baños</label>
+            <input type="number"
+                   [(ngModel)]="formData.bano"
+                   placeholder="0"
+                   min="0" />
+          </div>
+
+          <!-- Estacionamiento -->
+          <div class="formGroup">
+            <label>Estacionamiento</label>
+            <input type="number"
+                   [(ngModel)]="formData.estacionamiento"
+                   placeholder="0"
+                   min="0" />
+          </div>
+
+          <!-- Descripción -->
+          <div class="formGroup fullWidth">
+            <label>Descripción</label>
+            <textarea rows="4"
+                      [(ngModel)]="formData.descripcion"
+                      placeholder="Descripción detallada de la propiedad..."></textarea>
+          </div>
+
+          <!-- Foto -->
+          <div class="formGroup fullWidth">
+            <label>Foto de Propiedad</label>
+            <input type="file"
+                   accept="image/*"
+                   (change)="onFileChange($event)" />
+            <small style="color:#64748b;font-size:12px;margin-top:4px;">
+              Formatos permitidos: JPG, PNG (máx. 5MB)
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalFooter">
+        <button (click)="cerrarFormulario()" class="botonSecundario">Cancelar</button>
+        <button (click)="guardarPropiedad()" class="botonPrimario">
+          <span-lucide [name]="editandoPropiedad ? 'save' : 'plus'" size="18" strokeWidth="2.5"></span-lucide>
+          <span>{{ editandoPropiedad ? 'Actualizar' : 'Crear' }} Propiedad</span>
+        </button>
       </div>
     </div>
   </div>
