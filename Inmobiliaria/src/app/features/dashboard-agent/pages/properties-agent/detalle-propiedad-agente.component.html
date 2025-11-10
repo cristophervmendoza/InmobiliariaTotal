@@ -53,17 +53,17 @@
     </div>
 
 
-
-
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <!-- AGENTE -->
-      <div class="agentCard">
+      <!-- AGENTE ASIGNADO - Solo se muestra si viene del catálogo -->
+      <div class="agent" *ngIf="showAgentInfo && property.agent">
         <h3>AGENTE ASIGNADO</h3>
-        <p class="agentName">{{ property.agent.name }}</p>
-        <p>{{ property.agent.phone }}</p>
-        <p>{{ property.agent.email }}</p>
-        <button class="btnContact">Contactar Agente</button>
+        <div class="agent-name">{{ property.agent.name }}</div>
+        <div class="agent-detail">📞 {{ property.agent.phone }}</div>
+        <div class="agent-detail">📧 {{ property.agent.email }}</div>
+        <button class="contactBtn" (click)="contactAgent()">
+          Contactar Agente
+        </button>
       </div>
 
       <!-- CALCULADORA -->
@@ -91,9 +91,6 @@
     </div>
   </div>
 </div>
-
-
-
 
 <ng-template #loadingTpl>
   <div class="loading">Cargando detalles de la propiedad...</div>

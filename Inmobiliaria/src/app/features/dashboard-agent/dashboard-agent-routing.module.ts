@@ -37,6 +37,7 @@ const routes: Routes = [
 
       { path: 'companies', component: CompaniesAgent },
       { path: 'catalog', component: CatalogAgent },
+      { path: 'catalog/:id', component: DetallePropiedadAgenteComponent }, 
       { path: 'messages', component: MessagesAgent },
       { path: 'maintenance', component: MaintenanceAgent },
       { path: 'configurations', component: ConfigurationsAgent },

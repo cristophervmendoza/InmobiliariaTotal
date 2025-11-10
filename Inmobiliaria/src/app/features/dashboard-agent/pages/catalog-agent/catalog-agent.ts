@@ -109,6 +109,6 @@ export class CatalogAgent implements OnInit {
   }
 
   handleViewDetails(id: number) {
-    this.router.navigate(['/agent/properties', id]);
+    this.router.navigate(['/agent/catalog', id]); // ✅ CORRECTO - ahora va a catalog
   }
 }
