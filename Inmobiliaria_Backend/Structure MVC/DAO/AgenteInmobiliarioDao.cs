@@ -377,5 +377,61 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                 }
             };
         }
+
+        // Cambiar estado de agente (activo/inactivo)
+        public async Task<(bool exito, string mensaje)> CambiarEstadoAgenteAsync(int id, int nuevoEstado)
+        {
+            var connectionResult = db_single.GetConnection();
+            if (!connectionResult.Exito || connectionResult.Conexion == null)
+            {
+                return (false, connectionResult.Mensaje);
+            }
+
+            using var connection = connectionResult.Conexion;
+            try
+            {
+                // Validar que el estado sea válido (1=activo, 2=inactivo)
+                if (nuevoEstado < 1 || nuevoEstado > 2)
+                {
+                    return (false, "Estado inválido. Debe ser 1 (activo) o 2 (inactivo)");
+                }
+
+                // Obtener el agente
+                var (exitoGet, mensajeGet, agente) = await ObtenerAgentePorIdAsync(id);
+                if (!exitoGet || agente == null)
+                {
+                    return (false, "Agente no encontrado");
+                }
+
+                // Actualizar el estado del usuario asociado
+                string query = @"UPDATE usuario 
+                        SET IdEstadoUsuario = @nuevoEstado, 
+                            ActualizadoAt = @actualizadoAt
+                        WHERE IdUsuario = @idUsuario";
+
+                using var cmd = new MySqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@nuevoEstado", nuevoEstado);
+                cmd.Parameters.AddWithValue("@actualizadoAt", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("@idUsuario", agente.IdUsuario);
+
+                int filasAfectadas = await cmd.ExecuteNonQueryAsync();
+
+                if (filasAfectadas > 0)
+                {
+                    string estadoTexto = nuevoEstado == 1 ? "activo" : "inactivo";
+                    return (true, $"Agente cambiado a estado {estadoTexto} exitosamente");
+                }
+
+                return (false, "No se pudo cambiar el estado del agente");
+            }
+            catch (MySqlException ex)
+            {
+                return (false, $"Error al cambiar estado del agente: {ex.Message}");
+            }
+        }
+
+
+
+
     }
 }

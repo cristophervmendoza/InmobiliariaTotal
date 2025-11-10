@@ -1,0 +1,114 @@
+<div class="container" *ngIf="!loading; else loadingTpl">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1 class="title">Mis Propiedades Asignadas</h1>
+      <p class="subtitle">
+        Gestiona las propiedades que están bajo tu responsabilidad
+      </p>
+    </div>
+
+    <div class="stats">
+      <div class="statCard">
+        <div class="statValue">{{ totalCount }}</div>
+        <div class="statLabel">Total Asignadas</div>
+      </div>
+      <div class="statCard">
+        <div class="statValue">{{ disponiblesCount }}</div>
+        <div class="statLabel">Disponibles</div>
+      </div>
+      <div class="statCard">
+        <div class="statValue">{{ alquiladasCount }}</div>
+        <div class="statLabel">Alquiladas</div>
+      </div>
+      <div class="statCard">
+        <div class="statValue">{{ vendidasCount }}</div>
+        <div class="statLabel">Vendidas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="searchBox">
+      🔍
+      <input type="text"
+             placeholder="Buscar por título o ubicación..."
+             [(ngModel)]="searchText"
+             (input)="applyFilters()"
+             class="searchInput" />
+    </div>
+
+    <select [(ngModel)]="selectedType"
+            (change)="applyFilters()"
+            class="select">
+      <option value="">Todos los tipos</option>
+      <option value="Casa">Casa</option>
+      <option value="Departamento">Departamento</option>
+      <option value="Terreno">Terreno</option>
+    </select>
+
+    <select [(ngModel)]="selectedEstado"
+            (change)="applyFilters()"
+            class="select">
+      <option value="">Todos los estados</option>
+      <option value="Disponible">Disponible</option>
+      <option value="Alquilado">Alquilado</option>
+      <option value="Vendido">Vendido</option>
+    </select>
+  </div>
+
+  <!-- GRID -->
+  <div class="propertiesGrid">
+    <div *ngIf="filteredProperties.length === 0" class="noResults">
+      No se encontraron propiedades asignadas
+    </div>
+
+    <div *ngFor="let property of filteredProperties"
+         class="propertyCard"
+         [routerLink]="['/agent/properties', property.id]">
+
+      <div class="propertyImage">
+        <img [src]="property.images[0] || 'https://via.placeholder.com/400x300'"
+             [alt]="property.title" />
+        <div class="assignedBadge">Mi Asignación</div>
+        <div class="statusBadge"
+             [ngClass]="{
+            statusDisponible: property.status === 'Disponible',
+            statusAlquilado: property.status === 'Alquilado',
+            statusVendido: property.status === 'Vendido'
+          }">
+          {{ property.status }}
+        </div>
+      </div>
+
+      <div class="propertyContent">
+        <div class="propertyType">{{ property.type }}</div>
+        <h3 class="propertyTitle">{{ property.title }}</h3>
+
+        <div class="propertyLocation">📍 {{ property.location }}</div>
+
+        <div class="propertyFeatures">
+          <div class="feature">🛏️ {{ property.bedrooms }}</div>
+          <div class="feature">🛁 {{ property.bathrooms }}</div>
+          <div class="feature">📐 {{ property.area }} m²</div>
+        </div>
+
+        <div class="propertyFooter">
+          <div class="propertyPrice">
+            $ {{ property.price | number: '1.0-0' }}
+          </div>
+          <button class="detailsButton"
+                  [routerLink]="['/agent/properties', property.id]">
+            Ver Detalles
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading">Cargando mis propiedades...</div>
+</ng-template>

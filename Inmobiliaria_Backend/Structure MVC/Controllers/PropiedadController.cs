@@ -275,6 +275,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 });
             }
 
+            // Obtener propiedad existente
             var (existeExito, _, propiedadExistente) = await _propiedadDao.ObtenerPropiedadPorIdAsync(id);
             if (!existeExito || propiedadExistente == null)
             {
@@ -284,6 +285,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             string? fotoPath = propiedadExistente.FotoPropiedad;
             string? archivoAnterior = null;
 
+            // Manejo de nueva foto
             if (dto.FotoPropiedad != null && dto.FotoPropiedad.Length > 0)
             {
                 var validacion = ValidarImagen(dto.FotoPropiedad);
@@ -303,6 +305,14 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 }
             }
 
+            // ✅ ACTUALIZAR: Cambiar IdUsuario si se proporciona
+            if (dto.IdUsuario.HasValue && dto.IdUsuario.Value > 0)
+            {
+                propiedadExistente.IdUsuario = dto.IdUsuario.Value;
+                Console.WriteLine($"✅ Actualizando IdUsuario a: {dto.IdUsuario.Value}");
+            }
+
+            // Actualizar otros campos
             propiedadExistente.IdTipoPropiedad = dto.IdTipoPropiedad;
             propiedadExistente.IdEstadoPropiedad = dto.IdEstadoPropiedad;
             propiedadExistente.Titulo = dto.Titulo;
@@ -315,14 +325,16 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             propiedadExistente.Bano = dto.Bano;
             propiedadExistente.Estacionamiento = dto.Estacionamiento;
             propiedadExistente.FotoPropiedad = fotoPath;
-            propiedadExistente.ActualizarTiempos();
+            propiedadExistente.ActualizarTiempos(); // o propiedadExistente.ActualizadoAt = DateTime.UtcNow;
 
+            // Validar datos
             try
             {
                 propiedadExistente.ValidarDatos();
             }
             catch (ArgumentException ex)
             {
+                // Revertir foto nueva si falló validación
                 if (archivoAnterior != null && !string.IsNullOrEmpty(fotoPath) && System.IO.File.Exists(fotoPath))
                 {
                     System.IO.File.Delete(fotoPath);
@@ -330,10 +342,12 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 return BadRequest(new { exito = false, mensaje = ex.Message });
             }
 
+            // Actualizar en BD
             var (exito, mensaje) = await _propiedadDao.ActualizarPropiedadAsync(propiedadExistente);
 
             if (exito)
             {
+                // Eliminar foto antigua si todo salió bien
                 if (archivoAnterior != null && !string.IsNullOrEmpty(archivoAnterior) && System.IO.File.Exists(archivoAnterior))
                 {
                     System.IO.File.Delete(archivoAnterior);
@@ -341,6 +355,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 return Ok(new { exito = true, mensaje, data = propiedadExistente });
             }
 
+            // Si falló el update, eliminar la nueva foto
             if (archivoAnterior != null && !string.IsNullOrEmpty(fotoPath) && System.IO.File.Exists(fotoPath))
             {
                 System.IO.File.Delete(fotoPath);
@@ -348,6 +363,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
             return BadRequest(new { exito = false, mensaje });
         }
+
 
         // DELETE: api/Propiedad/{id}
         [HttpDelete("{id}")]
@@ -469,6 +485,10 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
     public class PropiedadUpdateDto
     {
+        // ✅ AGREGADO: Permitir cambiar el agente
+        [Range(1, int.MaxValue, ErrorMessage = "El ID de usuario debe ser mayor a 0")]
+        public int? IdUsuario { get; set; }
+
         [Required]
         [Range(1, int.MaxValue)]
         public int IdTipoPropiedad { get; set; }
@@ -510,4 +530,5 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
         public IFormFile? FotoPropiedad { get; set; }
     }
+
 }

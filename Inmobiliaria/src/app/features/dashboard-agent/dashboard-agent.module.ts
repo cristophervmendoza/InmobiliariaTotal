@@ -23,7 +23,12 @@ import { CompaniesAgent } from './pages/companies-agent/companies-agent';
 import { DashboardAgent } from './pages/dashboard-agent/dashboard-agent';
 import { MaintenanceAgent } from './pages/maintenance-agent/maintenance-agent';
 import { MessagesAgent } from './pages/messages-agent/messages-agent';
-import { PropertiesAgent } from './pages/properties-agent/properties-agent';
+import { MisPropiedadesComponent } from './pages/properties-agent/mis-propiedades.component';
+import { DetallePropiedadAgenteComponent } from './pages/properties-agent/detalle-propiedad-agente.component';
+
+
+
+
 import { ReportsAgent } from './pages/reports-agent/reports-agent';
 
 // Extras
@@ -58,12 +63,14 @@ import {
     Layout,
     NavbarAgent,
     SidebarAgent,
-    DashboardAgent,
+
+
     AgendaAgent,
     ReportsAgent,
-    PropertiesAgent,
+
+
     CompaniesAgent,
-    CatalogAgent,
+
     MessagesAgent,
     MaintenanceAgent,
     ConfigurationsAgent,
@@ -73,6 +80,10 @@ import {
     CommonModule,
     RouterModule,
     DashboardAgentRoutingModule,
+    DashboardAgent,
+    MisPropiedadesComponent,
+    DetallePropiedadAgenteComponent,
+    CatalogAgent,
     FormsModule,
     LucideAngularModule.pick({
       Home,

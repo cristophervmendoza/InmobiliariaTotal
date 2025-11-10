@@ -5,37 +5,57 @@
       Volver a propiedades
     </button>
 
+    <!-- Loading state -->
     <div class="loading" *ngIf="isLoading">
       <div class="spinner"></div>
       <p>Cargando detalle...</p>
     </div>
 
+    <!-- Not found state -->
     <div class="notFound" *ngIf="!isLoading && !property">
+      <i-lucide name="home" [size]="64" color="#94a3b8" style="margin-bottom: 16px;"></i-lucide>
       <h2>No se encontró la propiedad</h2>
-      <p>Puede que el enlace esté desactualizado.</p>
-      <button class="backHomeButton" (click)="backToList()">Volver</button>
+      <p>Puede que el enlace esté desactualizado o la propiedad haya sido eliminada.</p>
+      <button class="backHomeButton" (click)="backToList()">Volver a propiedades</button>
     </div>
 
+    <!-- Property detail content -->
     <ng-container *ngIf="!isLoading && property as p">
       <!-- Galería -->
       <section class="gallery">
         <div class="mainImage">
           <img [src]="p.images[currentImage]" [alt]="p.title" />
-          <button class="navButton navButtonPrev" (click)="prevImage()">
+
+          <!-- Botones de navegación - solo si hay más de 1 imagen -->
+          <button *ngIf="totalImages > 1"
+                  class="navButton navButtonPrev"
+                  (click)="prevImage()">
             <i-lucide name="arrow-right" [attr.style]="'transform: rotate(180deg)'" [size]="20"></i-lucide>
           </button>
-          <button class="navButton navButtonNext" (click)="nextImage()">
+          <button *ngIf="totalImages > 1"
+                  class="navButton navButtonNext"
+                  (click)="nextImage()">
             <i-lucide name="arrow-right" [size]="20"></i-lucide>
           </button>
-          <div class="imageCounter">{{ currentImage + 1 }} / {{ totalImages }}</div>
 
+          <!-- Contador de imágenes - solo si hay más de 1 -->
+          <div class="imageCounter" *ngIf="totalImages > 1">
+            {{ currentImage + 1 }} / {{ totalImages }}
+          </div>
+
+          <!-- Acciones sobre la imagen -->
           <div class="imageActions">
-            <button class="iconButton"><i-lucide name="heart" [size]="18"></i-lucide></button>
-            <button class="iconButton"><i-lucide name="maximize" [size]="18"></i-lucide></button>
+            <button class="iconButton" title="Agregar a favoritos">
+              <i-lucide name="heart" [size]="18"></i-lucide>
+            </button>
+            <button class="iconButton" title="Ver en pantalla completa">
+              <i-lucide name="maximize" [size]="18"></i-lucide>
+            </button>
           </div>
         </div>
 
-        <div class="thumbnails">
+        <!-- Miniaturas - solo si hay más de 1 imagen -->
+        <div class="thumbnails" *ngIf="totalImages > 1">
           <button *ngFor="let img of p.images; let i = index"
                   class="thumbnail"
                   [class.thumbnailActive]="i === currentImage"
@@ -65,27 +85,34 @@
 
           <!-- Características principales -->
           <div class="mainFeatures">
-            <div class="feature">
+            <!-- Habitaciones - solo si hay -->
+            <div class="feature" *ngIf="p.bedrooms > 0">
               <i-lucide name="bed" [size]="22"></i-lucide>
               <div>
                 <div class="featureValue">{{ p.bedrooms }}</div>
                 <div class="featureLabel">Habitaciones</div>
               </div>
             </div>
-            <div class="feature">
+
+            <!-- Baños - solo si hay -->
+            <div class="feature" *ngIf="p.bathrooms > 0">
               <i-lucide name="bath" [size]="22"></i-lucide>
               <div>
                 <div class="featureValue">{{ p.bathrooms }}</div>
                 <div class="featureLabel">Baños</div>
               </div>
             </div>
-            <div class="feature">
+
+            <!-- Área - solo si hay -->
+            <div class="feature" *ngIf="p.area > 0">
               <i-lucide name="maximize" [size]="22"></i-lucide>
               <div>
                 <div class="featureValue">{{ p.area }} m²</div>
                 <div class="featureLabel">Área</div>
               </div>
             </div>
+
+            <!-- Tipo - siempre mostrar -->
             <div class="feature">
               <i-lucide name="home" [size]="22"></i-lucide>
               <div>
@@ -103,8 +130,8 @@
             <p class="description">{{ p.description }}</p>
           </div>
 
-          <!-- Lista de características -->
-          <div class="section">
+          <!-- Lista de características - solo si hay -->
+          <div class="section" *ngIf="p.features && p.features.length > 0">
             <h3 class="sectionTitle">
               <i-lucide name="check-circle" [size]="18"></i-lucide> Características
             </h3>
@@ -115,13 +142,15 @@
             </div>
           </div>
 
-          <!-- Amenidades -->
-          <div class="section">
+          <!-- Amenidades - solo si hay -->
+          <div class="section" *ngIf="p.amenities && p.amenities.length > 0">
             <h3 class="sectionTitle">
               <i-lucide name="award" [size]="18"></i-lucide> Amenidades
             </h3>
             <div class="amenitiesList">
-              <div class="amenityItem" [class.amenityActive]="a.active" *ngFor="let a of p.amenities">
+              <div class="amenityItem"
+                   [class.amenityActive]="a.active"
+                   *ngFor="let a of p.amenities">
                 <i-lucide [name]="a.active ? 'check' : 'x'" [size]="16"></i-lucide>
                 {{ a.label }}
               </div>
@@ -133,31 +162,54 @@
         <aside class="sidebar">
           <div class="contactCard">
             <h4 class="contactTitle">Contacta al Agente</h4>
+
+            <!-- Información del agente -->
             <div class="agentInfo">
-              <div class="agentAvatar">{{ p.agent.name[0] }}</div>
+              <div class="agentAvatar">
+                <!-- Mostrar foto si existe, sino inicial del nombre -->
+                <img *ngIf="p.agent.avatar"
+                     [src]="p.agent.avatar"
+                     [alt]="p.agent.name"
+                     style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+                <span *ngIf="!p.agent.avatar">{{ p.agent.name[0] }}</span>
+              </div>
               <div>
                 <div class="agentName">{{ p.agent.name }}</div>
                 <div class="agentRole">{{ p.agent.role }}</div>
               </div>
             </div>
 
+            <!-- Botones de contacto - solo si hay datos -->
             <div class="contactButtons">
-              <a class="contactButton" [href]="'tel:' + p.agent.phone">
+              <a *ngIf="p.agent.phone && p.agent.phone !== 'No disponible'"
+                 class="contactButton"
+                 [href]="'tel:' + p.agent.phone">
                 <i-lucide name="phone" [size]="16"></i-lucide> Llamar
               </a>
-              <a class="contactButton" [href]="'mailto:' + p.agent.email">
+              <a *ngIf="p.agent.email && p.agent.email !== 'No disponible'"
+                 class="contactButton"
+                 [href]="'mailto:' + p.agent.email">
                 <i-lucide name="mail" [size]="16"></i-lucide> Email
               </a>
             </div>
 
-            <button class="appointmentButton">
+            <!-- Botón agendar visita -->
+            <button class="appointmentButton" (click)="agendarVisita()">
               <i-lucide name="calendar" [size]="18"></i-lucide>
               Agendar visita
             </button>
 
+            <!-- Formulario de mensaje -->
             <div class="contactForm">
-              <textarea class="textarea" placeholder="Escribe tu mensaje para el agente..."></textarea>
-              <button class="submitButton">Enviar mensaje</button>
+              <textarea #mensajeTextarea
+                        class="textarea"
+                        placeholder="Escribe tu mensaje para el agente..."
+                        rows="4"></textarea>
+              <button class="submitButton"
+                      (click)="enviarMensaje(mensajeTextarea.value); mensajeTextarea.value = ''">
+                <i-lucide name="send" [size]="16" style="margin-right:6px;"></i-lucide>
+                Enviar mensaje
+              </button>
             </div>
           </div>
         </aside>

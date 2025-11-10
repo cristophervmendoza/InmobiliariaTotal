@@ -30,9 +30,10 @@ export class SidebarAgent {
       items: [
         { name: 'Gestión', path: '/agent/catalog', icon: 'briefcase' },
         { name: 'Propiedades', path: '/agent/properties', icon: 'building-2' },
-        { name: 'Citas', path: '/agent/messages', icon: 'calendar' },
+        { name: 'Mensaje', path: '/agent/messages', icon: 'message-square' },
         { name: 'Mantenimiento', path: '/agent/maintenance', icon: 'wrench' },
-        { name: 'Testimonios', path: '/agent/agenda', icon: 'message-square' }
+        { name: 'Agenda', path: '/agent/agenda', icon: 'calendar' },
+        { name: 'Empresa', path: '/agent/companies', icon: 'users' }
       ]
     },
   ];

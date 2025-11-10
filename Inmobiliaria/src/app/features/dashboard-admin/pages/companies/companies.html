@@ -45,13 +45,6 @@
              [(ngModel)]="searchTerm"
              style="width:100%;border:none;outline:none;background:transparent;color:#0f172a;" />
     </div>
-
-    <select class="opcion" style="background:#fff;border:1px solid #f1f5f9;"
-            [(ngModel)]="statusFilter">
-      <option value="todos">Todos los estados</option>
-      <option value="activo">Activas</option>
-      <option value="inactivo">Inactivas</option>
-    </select>
   </div>
 
   <!-- Tabla -->
@@ -64,8 +57,9 @@
           <th class="headerCell">RUC</th>
           <th class="headerCell">Correo</th>
           <th class="headerCell">Teléfono</th>
+          <th class="headerCell">Usuario</th>
+          <th class="headerCell">Tipo Empresa</th>
           <th class="headerCell">Fecha Registro</th>
-          <th class="headerCell">Estado</th>
           <th class="headerCell">Acciones</th>
         </tr>
       </thead>
@@ -83,10 +77,13 @@
             <a [href]="'mailto:'+c.correo" class="linkCorreo">{{ c.correo }}</a>
           </td>
           <td class="celda">{{ c.telefono }}</td>
-          <td class="celda">{{ c.fechaRegistro }}</td>
           <td class="celda">
-            <span [class]="estadoBadge(c.estado)">{{ c.estado === 'activo' ? 'Activo' : 'Inactivo' }}</span>
+            <span class="badge aprobado">{{ c.nombreUsuario }}</span>
           </td>
+          <td class="celda">
+            <span class="badge">{{ c.tipoEmpresa }}</span>
+          </td>
+          <td class="celda">{{ c.fechaRegistro }}</td>
           <td class="celda">
             <button class="opcion btnTabla" title="Ver detalles" (click)="abrirDetalle(c)">
               <span-lucide name="eye" size="18"></span-lucide>
@@ -105,10 +102,16 @@
 
   <ng-template #estadoTpl>
     <div *ngIf="loading" class="contenedorVacio">
+      <span-lucide name="loader-2" size="48" class="iconoRotando" style="margin-bottom:16px;"></span-lucide>
       <p class="mensajeVacio">Cargando empresas...</p>
     </div>
     <div *ngIf="!loading && !filtered.length" class="contenedorVacio">
-      <p class="mensajeVacio">No se encontraron empresas con los filtros actuales</p>
+      <span-lucide name="building-2" size="48" style="margin-bottom:16px;color:#94a3b8;"></span-lucide>
+      <p class="mensajeVacio">No se encontraron empresas</p>
+      <button class="opcion outline" (click)="newCompany()" style="margin-top:16px;">
+        <span-lucide name="plus" size="18"></span-lucide>
+        Crear Primera Empresa
+      </button>
     </div>
   </ng-template>
 
@@ -122,7 +125,7 @@
       <div class="contenido body">
         <h2 class="pageTitle sm">{{ sel.nombre }}</h2>
         <div class="badgesRow">
-          <span [class]="estadoBadge(sel.estado)">{{ sel.estado === 'activo' ? 'Activo' : 'Inactivo' }}</span>
+          <span class="badge aprobado">{{ sel.tipoEmpresa }}</span>
           <span class="badge code">{{ sel.ruc }}</span>
         </div>
 
@@ -133,8 +136,10 @@
         <div>
           <h3 class="titulo">Información</h3>
           <div class="detallesGrid">
+            <p class="celda"><strong>Usuario asignado:</strong> {{ sel.nombreUsuario }}</p>
             <p class="celda"><strong>Correo:</strong> {{ sel.correo }}</p>
             <p class="celda"><strong>Teléfono:</strong> {{ sel.telefono }}</p>
+            <p class="celda"><strong>Tipo empresa:</strong> {{ sel.tipoEmpresa }}</p>
             <p class="celda"><strong>Fecha registro:</strong> {{ sel.fechaRegistro }}</p>
           </div>
         </div>
@@ -150,9 +155,11 @@
   <div class="overlay" *ngIf="showDelete && selected as selDel">
     <div class="modal soloBody">
       <div class="contenido body">
+        <span-lucide name="alert-triangle" size="48" style="color:#ef4444;margin-bottom:16px;"></span-lucide>
         <h2 class="pageTitle sm">Eliminar Empresa</h2>
         <p>¿Seguro que deseas eliminar <strong>{{ selDel.nombre }}</strong> ({{ selDel.ruc }})?</p>
-        <div class="endRow">
+        <p style="color:#64748b;font-size:14px;margin-top:8px;">Esta acción no se puede deshacer.</p>
+        <div class="endRow" style="margin-top:24px;">
           <button (click)="cerrarEliminar()" class="opcion outline">Cancelar</button>
           <button (click)="confirmarEliminar()" class="opcion danger">
             <span-lucide name="trash-2" size="18"></span-lucide>
@@ -173,40 +180,111 @@
         </div>
 
         <div class="selector column">
-          <!-- Logo -->
+          <!-- Logo (opcional - el backend no lo soporta aún) -->
           <div class="opcion field">
             <div class="wfull">
-              <label class="pageSubtitle">Logo</label>
+              <label class="pageSubtitle">Logo (Próximamente)</label>
               <div class="logoPicker">
                 <div class="logoPreview">
                   <img [src]="imagePreview || formData.logo || '/placeholder.svg'" alt="Preview" class="logoImg" />
                 </div>
                 <div class="logoActions">
-                  <input type="file" id="logoFile" accept="image/*" (change)="onFileChange($event)" class="fileHidden" />
-                  <label for="logoFile" class="opcion outline">Seleccionar imagen</label>
-                  <span *ngIf="errors.foto" class="badge rechazado">{{ errors.foto }}</span>
+                  <input type="file"
+                         id="logoFile"
+                         accept="image/*"
+                         (change)="onFileChange($event)"
+                         class="fileHidden"
+                         disabled />
+                  <label for="logoFile" class="opcion outline" style="opacity:0.5;cursor:not-allowed;">
+                    Seleccionar imagen (Próximamente)
+                  </label>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Campos -->
+          <!-- ✅ NUEVO: Campo de Usuario Asignado -->
+          <div class="opcion field">
+            <div class="wfull">
+              <label class="pageSubtitle">Usuario Asignado *</label>
+              <div class="userSearchContainer">
+                <div class="userSearchWrapper">
+                  <span-lucide name="user" size="18" class="searchInputIcon"></span-lucide>
+                  <input type="text"
+                         [(ngModel)]="busquedaUsuario"
+                         (ngModelChange)="onBusquedaUsuarioChange()"
+                         (focus)="mostrarDropdownUsuario = true"
+                         [class.inputError]="!!errors.idUsuario"
+                         class="input"
+                         placeholder="Buscar usuario por nombre, email o DNI..."
+                         autocomplete="off" />
+                  <button *ngIf="usuarioSeleccionado"
+                          type="button"
+                          (click)="limpiarUsuario()"
+                          class="clearButton"
+                          title="Limpiar selección">
+                    <span-lucide name="x" size="16"></span-lucide>
+                  </button>
+                </div>
+
+                <!-- Dropdown de resultados -->
+                <div *ngIf="mostrarDropdownUsuario && busquedaUsuario && usuariosFiltrados.length"
+                     class="userDropdown">
+                  <button *ngFor="let usuario of usuariosFiltrados"
+                          type="button"
+                          (click)="seleccionarUsuario(usuario)"
+                          class="userDropdownItem">
+                    <div class="userAvatar">
+                      <span-lucide name="user" size="16"></span-lucide>
+                    </div>
+                    <div class="userInfo">
+                      <span class="userName">{{ usuario.nombre }}</span>
+                      <span class="userMeta">{{ usuario.email }} • DNI: {{ usuario.dni }}</span>
+                    </div>
+                  </button>
+                </div>
+
+                <!-- Usuario seleccionado -->
+                <div *ngIf="usuarioSeleccionado" class="userSelected">
+                  <div class="userSelectedContent">
+                    <span-lucide name="check-circle" size="18" style="color:#10b981;"></span-lucide>
+                    <div>
+                      <div class="userSelectedName">{{ usuarioSeleccionado.nombre }}</div>
+                      <div class="userSelectedEmail">{{ usuarioSeleccionado.email }}</div>
+                    </div>
+                  </div>
+                  <span class="badge aprobado">Seleccionado</span>
+                </div>
+
+                <span *ngIf="errors.idUsuario" class="badge rechazado">{{ errors.idUsuario }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campos requeridos -->
           <div class="grid2">
             <div class="opcion field">
               <div class="wfull">
                 <label class="pageSubtitle">Nombre *</label>
-                <input type="text" [(ngModel)]="formData.nombre"
+                <input type="text"
+                       [(ngModel)]="formData.nombre"
                        (ngModelChange)="clearError('nombre')"
-                       [class.inputError]="!!errors.nombre" class="input" />
+                       [class.inputError]="!!errors.nombre"
+                       class="input"
+                       placeholder="Ej: IdealHome SAC" />
                 <span *ngIf="errors.nombre" class="badge rechazado">{{ errors.nombre }}</span>
               </div>
             </div>
             <div class="opcion field">
               <div class="wfull">
                 <label class="pageSubtitle">RUC *</label>
-                <input type="text" [(ngModel)]="formData.ruc"
+                <input type="text"
+                       [(ngModel)]="formData.ruc"
                        (ngModelChange)="clearError('ruc')"
-                       [class.inputError]="!!errors.ruc" class="input" />
+                       [class.inputError]="!!errors.ruc"
+                       class="input"
+                       maxlength="11"
+                       placeholder="Ej: 20481234567" />
                 <span *ngIf="errors.ruc" class="badge rechazado">{{ errors.ruc }}</span>
               </div>
             </div>
@@ -216,18 +294,25 @@
             <div class="opcion field">
               <div class="wfull">
                 <label class="pageSubtitle">Correo *</label>
-                <input type="email" [(ngModel)]="formData.correo"
+                <input type="email"
+                       [(ngModel)]="formData.correo"
                        (ngModelChange)="clearError('correo')"
-                       [class.inputError]="!!errors.correo" class="input" />
+                       [class.inputError]="!!errors.correo"
+                       class="input"
+                       placeholder="Ej: contacto@empresa.com" />
                 <span *ngIf="errors.correo" class="badge rechazado">{{ errors.correo }}</span>
               </div>
             </div>
             <div class="opcion field">
               <div class="wfull">
                 <label class="pageSubtitle">Teléfono *</label>
-                <input type="text" [(ngModel)]="formData.telefono"
+                <input type="text"
+                       [(ngModel)]="formData.telefono"
                        (ngModelChange)="clearError('telefono')"
-                       [class.inputError]="!!errors.telefono" class="input" />
+                       [class.inputError]="!!errors.telefono"
+                       class="input"
+                       maxlength="9"
+                       placeholder="Ej: 987654321" />
                 <span *ngIf="errors.telefono" class="badge rechazado">{{ errors.telefono }}</span>
               </div>
             </div>
@@ -236,37 +321,35 @@
           <div class="opcion field">
             <div class="wfull">
               <label class="pageSubtitle">Dirección *</label>
-              <input type="text" [(ngModel)]="formData.direccion"
+              <input type="text"
+                     [(ngModel)]="formData.direccion"
                      (ngModelChange)="clearError('direccion')"
-                     [class.inputError]="!!errors.direccion" class="input" />
+                     [class.inputError]="!!errors.direccion"
+                     class="input"
+                     placeholder="Ej: Av. Principal 123, Lima" />
               <span *ngIf="errors.direccion" class="badge rechazado">{{ errors.direccion }}</span>
             </div>
           </div>
 
-          <div class="grid2">
-            <div class="opcion field">
-              <div class="wfull">
-                <label class="pageSubtitle">Fecha de Registro *</label>
-                <input type="date" [(ngModel)]="formData.fechaRegistro" class="input" />
-              </div>
-            </div>
-            <div class="opcion field">
-              <div class="wfull">
-                <label class="pageSubtitle">Estado *</label>
-                <select [(ngModel)]="formData.estado" class="input">
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-              </div>
+          <div class="opcion field">
+            <div class="wfull">
+              <label class="pageSubtitle">Tipo de Empresa</label>
+              <input type="text"
+                     [(ngModel)]="formData.tipoEmpresa"
+                     (ngModelChange)="clearError('tipoEmpresa')"
+                     class="input"
+                     placeholder="Ej: SAC, SRL, EIRL, Persona Natural" />
+              <span *ngIf="errors.tipoEmpresa" class="badge rechazado">{{ errors.tipoEmpresa }}</span>
             </div>
           </div>
 
           <div class="endRow">
             <button class="opcion outline" (click)="closeForm()">Cancelar</button>
             <button class="opcion primary" (click)="submitForm()">
-              <span-lucide name="plus" size="16" *ngIf="!editing"></span-lucide>
-              <span-lucide name="edit-2" size="16" *ngIf="editing"></span-lucide>
-              {{ editing ? 'Guardar Cambios' : 'Crear' }}
+              <span-lucide name="loader-2" size="16" *ngIf="loading" class="iconoRotando"></span-lucide>
+              <span-lucide name="plus" size="16" *ngIf="!editing && !loading"></span-lucide>
+              <span-lucide name="save" size="16" *ngIf="editing && !loading"></span-lucide>
+              {{ editing ? 'Guardar Cambios' : 'Crear Empresa' }}
             </button>
           </div>
         </div>

@@ -1,1 +1,84 @@
-<p>catalog-agent works!</p>
+<div class="container" *ngIf="!loading; else loadingTpl">
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="header">
+      <div>
+        <h1 class="title">Catálogo de Propiedades</h1>
+        <p class="subtitle">Explora todas las propiedades disponibles en tu cartera</p>
+      </div>
+
+      <div class="resultCount">
+        <span class="count">{{ filteredProperties.length }}</span>
+        <span class="countLabel">propiedades encontradas</span>
+      </div>
+    </div>
+
+    <div class="searchBox">
+      🔍
+      <input type="text"
+             placeholder="Buscar por título o ubicación..."
+             [(ngModel)]="searchText"
+             (input)="applyFilters()"
+             class="searchInput" />
+    </div>
+
+    <select [(ngModel)]="selectedType" (change)="applyFilters()" class="select">
+      <option value="">Todos los tipos</option>
+      <option value="Casa">Casa</option>
+      <option value="Departamento">Departamento</option>
+      <option value="Terreno">Terreno</option>
+    </select>
+
+    <select [(ngModel)]="selectedEstado" (change)="applyFilters()" class="select">
+      <option value="">Todos los estados</option>
+      <option value="Disponible">Disponible</option>
+      <option value="Alquilado">Alquilado</option>
+      <option value="Vendido">Vendido</option>
+    </select>
+  </div>
+
+  <!-- GRID DE PROPIEDADES -->
+  <div class="propertiesGrid">
+    <div *ngIf="filteredProperties.length === 0" class="noResults">
+      No se encontraron propiedades
+    </div>
+
+    <div *ngFor="let property of filteredProperties"
+         class="propertyCard"
+         (click)="handleViewDetails(property.id)">
+      <div class="propertyImage">
+        <img [src]="property.images[0]"
+             [alt]="property.title" />
+        <div class="statusBadge"
+             [ngClass]="{
+            statusDisponible: property.status === 'Disponible',
+            statusAlquilado: property.status === 'Alquilado',
+            statusVendido: property.status === 'Vendido'
+          }">
+          {{ property.status }}
+        </div>
+      </div>
+
+      <div class="propertyContent">
+        <div class="propertyType">{{ property.type }}</div>
+        <h3 class="propertyTitle">{{ property.title }}</h3>
+        <div class="propertyLocation">📍 {{ property.location }}</div>
+
+        <div class="propertyFeatures">
+          <div class="feature">🛏️ {{ property.bedrooms }}</div>
+          <div class="feature">🛁 {{ property.bathrooms }}</div>
+          <div class="feature">📐 {{ property.area }} m²</div>
+        </div>
+
+        <div class="propertyFooter">
+          <div class="propertyPrice">$ {{ property.price | number: '1.0-0' }}</div>
+          <button class="detailsButton">Ver Detalles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading">Cargando propiedades...</div>
+</ng-template>

@@ -548,4 +548,13 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         [StringLength(255, MinimumLength = 8)]
         public string NuevaPassword { get; set; } = string.Empty;
     }
+
+
+    public class CambiarUsuarioEstadoDto
+    {
+        [Required(ErrorMessage = "El estado es requerido")]
+        [Range(1, 2, ErrorMessage = "El estado debe ser 1 (activo) o 2 (inactivo)")]
+        public int IdEstadoUsuario { get; set; }
+    }
+
 }

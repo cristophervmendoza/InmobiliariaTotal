@@ -1,9 +1,10 @@
 <div class="auth">
   <div class="auth-card">
+
     <!-- Header -->
     <div class="auth-header">
       <div class="auth-logo">
-        <span-lucide name="building-2" size="24"></span-lucide>
+        <span-lucide name="building-2" size="28" strokeWidth="2"></span-lucide>
       </div>
       <div class="auth-title">
         <h1>Iniciar Sesión</h1>
@@ -11,79 +12,107 @@
       </div>
     </div>
 
+    <!-- Alertas -->
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <span-lucide name="alert-circle" size="20"></span-lucide>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div class="alert alert-success" *ngIf="successMessage">
+      <span-lucide name="check-circle" size="20"></span-lucide>
+      <span>{{ successMessage }}</span>
+    </div>
+
     <!-- Formulario -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+
       <!-- Email -->
       <div class="field">
-        <label class="field-label">Correo Electrónico</label>
+        <label class="field-label">
+          Correo electrónico
+          <span class="required">*</span>
+        </label>
         <div class="field-control" [class.error-border]="f['email'].invalid && f['email'].touched">
           <span-lucide name="mail" size="18" class="field-icon"></span-lucide>
-          <input type="email" formControlName="email" placeholder="tu@email.com"
+          <input type="email"
+                 formControlName="email"
+                 placeholder="Ej: usuario@correo.com"
                  autocomplete="email" />
         </div>
+        <span class="field-hint" *ngIf="!f['email'].touched">Ingresa tu correo registrado</span>
         <span class="error" *ngIf="f['email'].invalid && f['email'].touched">
-          {{ f['email'].errors?.['required'] ? 'El email es requerido' : 'Email inválido' }}
+          {{ getErrorMessage('email') }}
         </span>
       </div>
 
       <!-- Contraseña -->
       <div class="field">
-        <label class="field-label">Contraseña</label>
+        <label class="field-label">
+          Contraseña
+          <span class="required">*</span>
+        </label>
         <div class="field-control" [class.error-border]="f['password'].invalid && f['password'].touched">
           <span-lucide name="lock" size="18" class="field-icon"></span-lucide>
           <input [type]="passwordVisible ? 'text' : 'password'"
                  formControlName="password"
-                 placeholder="••••••••"
+                 placeholder="Ingresa tu contraseña"
                  autocomplete="current-password" />
-          <button type="button" class="field-action" (click)="togglePassword()"
+          <button type="button"
+                  class="field-action"
+                  (click)="togglePassword()"
                   aria-label="Mostrar/Ocultar contraseña">
             <span-lucide [name]="passwordVisible ? 'eye-off' : 'eye'" size="18"></span-lucide>
           </button>
         </div>
+        <span class="field-hint" *ngIf="!f['password'].touched">Mínimo 8 caracteres</span>
         <span class="error" *ngIf="f['password'].invalid && f['password'].touched">
-          {{ f['password'].errors?.['required'] ? 'La contraseña es requerida' : 'Mínimo 8 caracteres' }}
+          {{ getErrorMessage('password') }}
         </span>
       </div>
 
       <!-- Estado captcha -->
-      <div class="auth-row center" style="margin: 8px 0;">
-        <span *ngIf="isVerifyingCaptcha" style="font-size: 13px; color:#64748b;">
-          Verificando captcha...
-        </span>
-        <span *ngIf="!isVerifyingCaptcha && captchaOk" style="font-size: 13px; color:#16a34a;">
-          Captcha verificado
+      <div class="captcha-status" *ngIf="isVerifyingCaptcha || captchaOk">
+        <span-lucide *ngIf="isVerifyingCaptcha"
+                     name="loader-2"
+                     size="16"
+                     class="spin"></span-lucide>
+        <span-lucide *ngIf="!isVerifyingCaptcha && captchaOk"
+                     name="shield-check"
+                     size="16"></span-lucide>
+        <span>
+          {{ isVerifyingCaptcha ? 'Verificando seguridad...' : 'Verificación completada' }}
         </span>
       </div>
 
       <!-- Recordar y Olvidaste contraseña -->
-      <div class="auth-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+      <div class="auth-row space-between">
         <label class="check">
           <input type="checkbox" formControlName="remember" />
           <span>Recordarme</span>
         </label>
-        <a routerLink="/auth/forgot-password" class="link">¿Olvidaste tu contraseña?</a>
-      </div>
-
-      <!-- Mensaje de error -->
-      <div class="error-message" *ngIf="errorMessage">
-        <span-lucide name="alert-circle" size="18"></span-lucide>
-        <span>{{ errorMessage }}</span>
+        <a routerLink="/auth/forgotpassword" class="link">¿Olvidaste tu contraseña?</a>
       </div>
 
       <!-- Botón de envío -->
-      <button type="submit" class="auth-submit"
-              [disabled]="isSubmitting || isVerifyingCaptcha || loginForm.invalid">
-        <span-lucide *ngIf="!isSubmitting" name="log-in" size="18"></span-lucide>
-        <span>{{ isSubmitting ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
+      <button type="submit"
+              class="auth-submit"
+              [disabled]="isSubmitting || isVerifyingCaptcha"
+              [class.loading]="isSubmitting">
+        <span-lucide *ngIf="!isSubmitting"
+                     name="log-in"
+                     size="18"></span-lucide>
+        <span-lucide *ngIf="isSubmitting"
+                     name="loader-2"
+                     size="18"
+                     class="spin"></span-lucide>
+        <span>{{ isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión' }}</span>
       </button>
-
-      <!-- Registro -->
-      <div class="auth-row center">
-        <span class="mt" style="color: #64748b; font-size: 13px;">
-          ¿No tienes cuenta?
-          <a routerLink="/auth/register" class="link">Regístrate aquí</a>
-        </span>
-      </div>
     </form>
+
+    <!-- Registro -->
+    <div class="auth-row center mt">
+      <span class="text-muted">¿No tienes cuenta?</span>
+      <a routerLink="/auth/register" class="link">Regístrate aquí</a>
+    </div>
   </div>
 </div>

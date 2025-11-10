@@ -29,23 +29,56 @@ import { Offer } from './pages/offer/offer';
 import { Properties } from './pages/properties/properties';
 import { Testimony } from './pages/testimony/testimony';
 import { PropertyDetail } from './pages/properties/propertydetail/propertydetail';
+
 // Routing del feature
 import { PublicRoutingModule } from './public-routing.module';
 
 // Lucide Angular
 import {
   LucideAngularModule,
-  // Íconos que ya tenías
-  Phone, Mail, MapPin, Building2,
-  User, Calendar, Home as HomeIcon, X, Menu,
-  Facebook, Twitter, Instagram,
-  Search, Award, TrendingUp, CheckCircle, Clock, Star, ArrowRight, Users,
-  Trophy, DollarSign, BookOpen, Users2,
-  Upload, Check, AlertCircle, FileText,
-  // Íconos añadidos para Properties
-  Grid3x3, List, Heart, Bed, Bath, Maximize, SlidersHorizontal
-} from 'lucide-angular';
+  // Íconos base
+  Phone,
+  Mail,
+  MapPin,
+  Building2,
+  User,
+  Calendar,
+  Home as HomeIcon,
+  X,
+  Menu,
+  Facebook,
+  Twitter,
+  Instagram,
+  Search,
+  Award,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  Star,
+  ArrowRight,
+  Users,
+  Trophy,
+  DollarSign,
+  BookOpen,
+  Users2,
+  Upload,
+  Check,
+  AlertCircle,
+  FileText,
 
+  // ✅ Íconos para Properties (lista)
+  Grid3x3,
+  List,
+  Heart,
+  Bed,
+  Bath,
+  Maximize,
+  SlidersHorizontal,
+
+  // ✅ Íconos para PropertyDetail (detalle)
+  CheckCircle2,      // ✅ Para sección de características
+  Send               // ✅ Para botón enviar mensaje
+} from 'lucide-angular';
 
 // Servicio de subida (opcional)
 @Injectable({ providedIn: 'root' })
@@ -75,8 +108,15 @@ export class ProgressInterceptor implements HttpInterceptor {
 @NgModule({
   declarations: [
     Layout,
-    Topbar, Navbar, Footer,
-    Home, BeAsesor, Offer, Properties, Testimony, PropertyDetail
+    Topbar,
+    Navbar,
+    Footer,
+    Home,
+    BeAsesor,
+    Offer,
+    Properties,
+    Testimony,
+    PropertyDetail
   ],
   imports: [
     CommonModule,
@@ -87,17 +127,47 @@ export class ProgressInterceptor implements HttpInterceptor {
     HttpClientModule,
     LucideAngularModule.pick({
       // Base
-      Phone, Mail, MapPin, Building2, User,
+      Phone,
+      Mail,
+      MapPin,
+      Building2,
+      User,
       Calendar,
       Home: HomeIcon,
       X,
       Menu,
-      Facebook, Twitter, Instagram,
-      Search, Award, TrendingUp, CheckCircle, Clock, Star, ArrowRight, Users,
-      Trophy, DollarSign, BookOpen, Users2,
-      Upload, Check, AlertCircle, FileText,
-      // Requeridos por properties.html
-      Grid3x3, List, Heart, Bed, Bath, Maximize, SlidersHorizontal
+      Facebook,
+      Twitter,
+      Instagram,
+      Search,
+      Award,
+      TrendingUp,
+      CheckCircle,
+      Clock,
+      Star,
+      ArrowRight,
+      Users,
+      Trophy,
+      DollarSign,
+      BookOpen,
+      Users2,
+      Upload,
+      Check,
+      AlertCircle,
+      FileText,
+
+      // ✅ Properties (lista de propiedades)
+      Grid3x3,           // Vista en cuadrícula
+      List,              // Vista en lista
+      Heart,             // Favoritos
+      Bed,               // Habitaciones
+      Bath,              // Baños
+      Maximize,          // Área/tamaño
+      SlidersHorizontal, // Botón filtros
+
+      // ✅ PropertyDetail (detalle de propiedad)
+      CheckCircle2,      // Sección características
+      Send               // Enviar mensaje
     })
   ],
   exports: [

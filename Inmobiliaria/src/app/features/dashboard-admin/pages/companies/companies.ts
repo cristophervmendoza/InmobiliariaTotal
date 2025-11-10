@@ -1,9 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CompaniesService, Empresa, CrearEmpresaDto, ActualizarEmpresaDto } from '../../../../core/services/companies.service';
+import { UserService, Usuario } from '../../../../core/services/user.service';
+import { forkJoin } from 'rxjs';
 
-type Estado = 'activo' | 'inactivo';
+type ErrorKeys = 'nombre' | 'ruc' | 'correo' | 'direccion' | 'telefono' | 'tipoEmpresa' | 'idUsuario';
+type ErrorsMap = Record<ErrorKeys, string>;
 
-interface Company {
-  id: string;
+interface CompanyVista {
+  id: number;
+  idUsuario: number;
   nombre: string;
   ruc: string;
   correo: string;
@@ -11,7 +16,8 @@ interface Company {
   logo: string;
   fechaRegistro: string;
   telefono: string;
-  estado: Estado;
+  tipoEmpresa: string;
+  nombreUsuario?: string;
 }
 
 interface StatCard {
@@ -19,11 +25,8 @@ interface StatCard {
   valor: number;
   color: string;
   icon: string;
-  pct?: number; // porcentaje para barra
+  pct?: number;
 }
-
-type ErrorKeys = 'nombre' | 'ruc' | 'correo' | 'direccion' | 'telefono' | 'foto';
-type ErrorsMap = Record<ErrorKeys, string>;
 
 @Component({
   selector: 'app-companies',
@@ -32,25 +35,27 @@ type ErrorsMap = Record<ErrorKeys, string>;
   styleUrls: ['./companies.css']
 })
 export class Companies implements OnInit {
-  companies: Company[] = [];
+  private companiesService = inject(CompaniesService);
+  private usuariosService = inject(UserService);
+
+  companies: CompanyVista[] = [];
+  usuarios: Usuario[] = [];
+  usuariosFiltrados: Usuario[] = [];
   loading = true;
 
-  // Header actions
   exportando = false;
 
-  // Filtros
   searchTerm = '';
-  statusFilter: 'todos' | Estado = 'todos';
+  statusFilter: 'todos' | string = 'todos';
 
-  // UI: detalle, eliminar, crear/editar
   showDetails = false;
   showDelete = false;
   showForm = false;
-  selected: Company | null = null;
-  editing: Company | null = null;
+  selected: CompanyVista | null = null;
+  editing: CompanyVista | null = null;
 
-  // Form state
-  formData: Omit<Company, 'id'> = {
+  formData = {
+    idUsuario: 0,
     nombre: '',
     ruc: '',
     correo: '',
@@ -58,28 +63,130 @@ export class Companies implements OnInit {
     logo: '',
     fechaRegistro: new Date().toISOString().slice(0, 10),
     telefono: '',
-    estado: 'activo'
+    tipoEmpresa: ''
   };
-  errors: ErrorsMap = { nombre: '', ruc: '', correo: '', direccion: '', telefono: '', foto: '' };
+
+  errors: ErrorsMap = {
+    idUsuario: '',
+    nombre: '',
+    ruc: '',
+    correo: '',
+    direccion: '',
+    telefono: '',
+    tipoEmpresa: ''
+  };
+
+  busquedaUsuario = '';
+  mostrarDropdownUsuario = false;
+  usuarioSeleccionado: Usuario | null = null;
+
   imagePreview = '';
 
   ngOnInit(): void {
-    this.simularCarga();
+    this.cargarDatosIniciales();
   }
 
-  async simularCarga() {
-    await new Promise(r => setTimeout(r, 600));
-    this.companies = [
-      { id: '1', nombre: 'IdealHome SAC', ruc: '20481234567', correo: 'contacto@idealhome.pe', direccion: 'Av. Central 123, Lima', logo: '/company-1.png', fechaRegistro: '2024-03-10', telefono: '999888777', estado: 'activo' },
-      { id: '2', nombre: 'UrbanSpace SRL', ruc: '20678901234', correo: 'info@urbanspace.com', direccion: 'Calle Las Flores 567, Lima', logo: '/company-2.png', fechaRegistro: '2023-11-05', telefono: '987654321', estado: 'inactivo' }
-    ];
-    this.loading = false;
+  cargarDatosIniciales(): void {
+    console.log('🔄 Cargando datos iniciales...');
+    this.loading = true;
+
+    forkJoin({
+      empresas: this.companiesService.listarEmpresas(),
+      usuarios: this.usuariosService.listarUsuarios()
+    }).subscribe({
+      next: ({ empresas, usuarios }) => {
+        console.log('📦 Datos cargados:', { empresas, usuarios });
+
+        if (usuarios.exito && usuarios.data) {
+          this.usuarios = usuarios.data;
+          this.usuariosFiltrados = this.usuarios;
+          console.log('✅ Usuarios cargados:', this.usuarios.length);
+        }
+
+        if (empresas.exito && empresas.data) {
+          this.companies = empresas.data.map(emp => this.mapearEmpresa(emp));
+          console.log('✅ Empresas:', this.companies.length);
+        } else {
+          this.companies = [];
+        }
+
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar datos:', error);
+        this.loading = false;
+        this.companies = [];
+      }
+    });
   }
 
-  // Métricas
-  get total(): number { return this.companies.length; }
-  get activas(): number { return this.companies.filter(c => c.estado === 'activo').length; }
-  get inactivas(): number { return this.companies.filter(c => c.estado === 'inactivo').length; }
+  // ✅ CORREGIDO: Recargar empresas Y usuarios
+  cargarEmpresas(): void {
+    console.log('🔄 Recargando empresas y usuarios...');
+    this.loading = true;
+
+    forkJoin({
+      empresas: this.companiesService.listarEmpresas(),
+      usuarios: this.usuariosService.listarUsuarios()
+    }).subscribe({
+      next: ({ empresas, usuarios }) => {
+        console.log('📦 Datos recargados:', { empresas, usuarios });
+
+        if (usuarios.exito && usuarios.data) {
+          this.usuarios = usuarios.data;
+          this.usuariosFiltrados = this.usuarios;
+          console.log('✅ Usuarios actualizados:', this.usuarios.length);
+        }
+
+        if (empresas.exito && empresas.data) {
+          this.companies = empresas.data.map(emp => this.mapearEmpresa(emp));
+          console.log('✅ Empresas recargadas:', this.companies.length);
+        }
+
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  private mapearEmpresa(emp: Empresa): CompanyVista {
+    const usuario = this.usuarios.find(u => u.idUsuario === emp.idUsuario);
+
+    return {
+      id: emp.idEmpresa,
+      idUsuario: emp.idUsuario,
+      nombre: emp.nombre,
+      ruc: emp.ruc,
+      correo: emp.email || 'Sin correo',
+      direccion: emp.direccion || 'Sin dirección',
+      logo: '/placeholder.svg',
+      fechaRegistro: this.formatearFecha(emp.fechaRegistro),
+      telefono: emp.telefono || 'Sin teléfono',
+      tipoEmpresa: emp.tipoEmpresa || 'No especificado',
+      nombreUsuario: usuario?.nombre || 'Sin asignar'
+    };
+  }
+
+  private formatearFecha(fecha: string): string {
+    const date = new Date(fecha);
+    return date.toISOString().split('T')[0];
+  }
+
+  get total(): number {
+    return this.companies.length;
+  }
+
+  get activas(): number {
+    return this.companies.length;
+  }
+
+  get inactivas(): number {
+    return 0;
+  }
+
   private pct(value: number, base: number): number {
     if (!base) return 0;
     return Math.max(0, Math.min(100, Math.round((value / base) * 100)));
@@ -87,92 +194,262 @@ export class Companies implements OnInit {
 
   get estadisticas(): StatCard[] {
     const total = this.total;
-    const activas = this.activas;
-    const inactivas = this.inactivas;
     return [
-      { titulo: 'Total', valor: total, color: '#06b6d4', icon: 'building-2', pct: this.pct(total, total || 1) },
-      { titulo: 'Activas', valor: activas, color: '#10b981', icon: 'check-circle-2', pct: this.pct(activas, total || 1) },
-      { titulo: 'Inactivas', valor: inactivas, color: '#f59e0b', icon: 'clock', pct: this.pct(inactivas, total || 1) }
+      { titulo: 'Total', valor: total, color: '#06b6d4', icon: 'building-2', pct: 100 },
+      { titulo: 'Activas', valor: this.activas, color: '#10b981', icon: 'check-circle-2', pct: this.pct(this.activas, total || 1) },
+      { titulo: 'Inactivas', valor: this.inactivas, color: '#f59e0b', icon: 'clock', pct: this.pct(this.inactivas, total || 1) }
     ];
   }
 
-  // Filtrado
-  get filtered(): Company[] {
+  get filtered(): CompanyVista[] {
     const q = this.searchTerm.trim().toLowerCase();
-    const s = this.statusFilter;
     return this.companies.filter(c => {
-      const matchesSearch =
-        !q ||
+      return !q ||
         c.nombre.toLowerCase().includes(q) ||
         c.ruc.toLowerCase().includes(q) ||
         c.correo.toLowerCase().includes(q) ||
         c.direccion.toLowerCase().includes(q);
-      const matchesStatus = s === 'todos' || c.estado === s;
-      return matchesSearch && matchesStatus;
     });
   }
 
-  estadoBadge(estado: Estado) {
-    return `badge ${estado === 'activo' ? 'aprobado' : 'rechazado'}`;
+  estadoBadge(estado: string) {
+    return 'badge aprobado';
   }
 
-  // Export
-  async exportarAExcel(datos: Company[]): Promise<void> { await new Promise(r => setTimeout(r, 800)); }
+  onBusquedaUsuarioChange(): void {
+    const term = this.busquedaUsuario.toLowerCase().trim();
+
+    if (!term) {
+      this.usuariosFiltrados = this.usuarios;
+    } else {
+      this.usuariosFiltrados = this.usuarios.filter(u =>
+        u.nombre.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        u.dni.includes(term)
+      );
+    }
+    this.mostrarDropdownUsuario = true;
+  }
+
+  seleccionarUsuario(usuario: Usuario): void {
+    this.usuarioSeleccionado = usuario;
+    this.busquedaUsuario = usuario.nombre;
+    this.formData.idUsuario = usuario.idUsuario;
+    this.mostrarDropdownUsuario = false;
+    this.clearError('idUsuario');
+    console.log('✅ Usuario seleccionado:', usuario);
+  }
+
+  limpiarUsuario(): void {
+    this.usuarioSeleccionado = null;
+    this.busquedaUsuario = '';
+    this.formData.idUsuario = 0;
+    this.usuariosFiltrados = this.usuarios;
+  }
+
+  async exportarAExcel(datos: CompanyVista[]): Promise<void> {
+    await new Promise(r => setTimeout(r, 800));
+    console.log('📊 Exportando:', datos.length, 'empresas');
+    alert('✅ Exportación exitosa');
+  }
+
   async handleExportar() {
     const datos = this.filtered;
-    if (!datos.length) { alert('No hay datos para exportar'); return; }
+    if (!datos.length) {
+      alert('No hay datos para exportar');
+      return;
+    }
     this.exportando = true;
-    try { await this.exportarAExcel(datos); }
-    catch { alert('Error al exportar'); }
-    finally { this.exportando = false; }
+    try {
+      await this.exportarAExcel(datos);
+    } catch {
+      alert('Error al exportar');
+    } finally {
+      this.exportando = false;
+    }
   }
 
-  // Detalle / Eliminar
-  abrirDetalle(c: Company) { this.selected = c; this.showDetails = true; }
-  cerrarDetalle() { this.showDetails = false; this.selected = null; }
+  abrirDetalle(c: CompanyVista) {
+    this.selected = c;
+    this.showDetails = true;
+  }
 
-  abrirEliminar(c: Company) { this.selected = c; this.showDelete = true; }
-  cerrarEliminar() { this.showDelete = false; this.selected = null; }
+  cerrarDetalle() {
+    this.showDetails = false;
+    this.selected = null;
+  }
+
+  abrirEliminar(c: CompanyVista) {
+    this.selected = c;
+    this.showDelete = true;
+  }
+
+  cerrarEliminar() {
+    this.showDelete = false;
+    this.selected = null;
+  }
+
   confirmarEliminar() {
     if (!this.selected) return;
-    this.companies = this.companies.filter(x => x.id !== this.selected!.id);
-    this.cerrarEliminar();
+
+    console.log('🗑️ Eliminando empresa:', this.selected.id);
+
+    this.companiesService.eliminarEmpresa(this.selected.id).subscribe({
+      next: (response) => {
+        console.log('✅ Respuesta:', response);
+        if (response.exito) {
+          alert('✅ Empresa eliminada correctamente');
+          this.cargarEmpresas();
+          this.cerrarEliminar();
+        } else {
+          alert('❌ ' + (response.mensaje || 'Error al eliminar'));
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error:', error);
+        alert('❌ Error al eliminar empresa');
+      }
+    });
   }
 
-  // Crear / Editar
   newCompany() {
     this.editing = null;
     this.formData = {
-      nombre: '', ruc: '', correo: '', direccion: '', logo: '',
+      idUsuario: 0,
+      nombre: '',
+      ruc: '',
+      correo: '',
+      direccion: '',
+      logo: '',
       fechaRegistro: new Date().toISOString().slice(0, 10),
-      telefono: '', estado: 'activo'
+      telefono: '',
+      tipoEmpresa: ''
     };
+    this.limpiarUsuario();
     this.imagePreview = '';
     this.clearAllErrors();
     this.showForm = true;
   }
-  editCompany(c: Company) {
+
+  editCompany(c: CompanyVista) {
     this.editing = c;
-    this.formData = { nombre: c.nombre, ruc: c.ruc, correo: c.correo, direccion: c.direccion, logo: c.logo, fechaRegistro: c.fechaRegistro, telefono: c.telefono, estado: c.estado };
+    this.formData = {
+      idUsuario: c.idUsuario,
+      nombre: c.nombre,
+      ruc: c.ruc,
+      correo: c.correo,
+      direccion: c.direccion,
+      logo: c.logo,
+      fechaRegistro: c.fechaRegistro,
+      telefono: c.telefono,
+      tipoEmpresa: c.tipoEmpresa
+    };
+
+    const usuario = this.usuarios.find(u => u.idUsuario === c.idUsuario);
+    if (usuario) {
+      this.usuarioSeleccionado = usuario;
+      this.busquedaUsuario = usuario.nombre;
+      console.log('✅ Usuario precargado:', usuario.nombre);
+    }
+
     this.imagePreview = c.logo;
     this.clearAllErrors();
     this.showForm = true;
   }
-  closeForm() { this.showForm = false; this.editing = null; this.clearAllErrors(); this.imagePreview = ''; }
 
-  clearAllErrors() { this.errors = { nombre: '', ruc: '', correo: '', direccion: '', telefono: '', foto: '' }; }
-  clearError(k: ErrorKeys) { this.errors[k] = ''; }
+  closeForm() {
+    this.showForm = false;
+    this.editing = null;
+    this.limpiarUsuario();
+    this.clearAllErrors();
+    this.imagePreview = '';
+  }
 
+  clearAllErrors() {
+    this.errors = {
+      idUsuario: '',
+      nombre: '',
+      ruc: '',
+      correo: '',
+      direccion: '',
+      telefono: '',
+      tipoEmpresa: ''
+    };
+  }
+
+  clearError(k: ErrorKeys) {
+    this.errors[k] = '';
+  }
+
+  // ✅ CORREGIDO: Validar IdUsuario siempre
   validate(): boolean {
     const e: ErrorsMap = { ...this.errors };
     const f = this.formData;
-    e.nombre = !f.nombre.trim() ? 'El nombre es requerido' : '';
-    e.ruc = !f.ruc.trim() ? 'El RUC es requerido' : '';
-    if (!f.correo.trim()) e.correo = 'El correo es requerido';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.correo)) e.correo = 'El correo no es válido';
-    else e.correo = '';
-    e.direccion = !f.direccion.trim() ? 'La dirección es requerida' : '';
-    e.telefono = !f.telefono.trim() ? 'El teléfono es requerido' : '';
+
+    e.idUsuario = f.idUsuario === 0 ? 'Debes seleccionar un usuario' : '';
+
+    if (!f.nombre.trim()) {
+      e.nombre = 'El nombre es requerido';
+    } else if (f.nombre.length < 2 || f.nombre.length > 100) {
+      e.nombre = 'El nombre debe tener entre 2 y 100 caracteres';
+    } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,\s-&]+$/.test(f.nombre)) {
+      e.nombre = 'El nombre contiene caracteres no permitidos';
+    } else {
+      e.nombre = '';
+    }
+
+    if (!f.ruc.trim()) {
+      e.ruc = 'El RUC es requerido';
+    } else if (f.ruc.length !== 11) {
+      e.ruc = 'El RUC debe tener exactamente 11 dígitos';
+    } else if (!/^(10|15|17|20)\d{9}$/.test(f.ruc)) {
+      e.ruc = 'El RUC debe iniciar con 10, 15, 17 o 20';
+    } else {
+      e.ruc = '';
+    }
+
+    if (f.correo.trim()) {
+      if (!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(f.correo)) {
+        e.correo = 'El correo no es válido';
+      } else if (f.correo.length < 5 || f.correo.length > 100) {
+        e.correo = 'El correo debe tener entre 5 y 100 caracteres';
+      } else {
+        e.correo = '';
+      }
+    } else {
+      e.correo = '';
+    }
+
+    if (f.direccion.trim() && f.direccion.length > 500) {
+      e.direccion = 'La dirección no puede exceder los 500 caracteres';
+    } else if (f.direccion.trim() && !/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,\s\-#°/]+$/.test(f.direccion)) {
+      e.direccion = 'La dirección contiene caracteres no permitidos';
+    } else {
+      e.direccion = '';
+    }
+
+    if (f.telefono.trim()) {
+      if (!/^9\d{8}$/.test(f.telefono)) {
+        e.telefono = 'El teléfono debe ser 9 dígitos empezando con 9';
+      } else {
+        e.telefono = '';
+      }
+    } else {
+      e.telefono = '';
+    }
+
+    if (f.tipoEmpresa.trim()) {
+      if (f.tipoEmpresa.length < 3 || f.tipoEmpresa.length > 200) {
+        e.tipoEmpresa = 'El tipo debe tener entre 3 y 200 caracteres';
+      } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,\s-]+$/.test(f.tipoEmpresa)) {
+        e.tipoEmpresa = 'El tipo contiene caracteres no permitidos';
+      } else {
+        e.tipoEmpresa = '';
+      }
+    } else {
+      e.tipoEmpresa = '';
+    }
+
     this.errors = e;
     return Object.values(e).every(v => !v);
   }
@@ -181,28 +458,108 @@ export class Companies implements OnInit {
     const input = ev.target as HTMLInputElement;
     const file = input.files && input.files[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { this.errors.foto = 'Selecciona una imagen válida'; return; }
-    if (file.size > 5 * 1024 * 1024) { this.errors.foto = 'La imagen no debe superar 5MB'; return; }
+
+    if (!file.type.startsWith('image/')) {
+      alert('❌ Selecciona una imagen válida');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ La imagen no debe superar 5MB');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = String(reader.result || '');
       this.formData.logo = base64;
       this.imagePreview = base64;
-      this.errors.foto = '';
     };
     reader.readAsDataURL(file);
   }
 
   submitForm() {
-    if (!this.validate()) return;
-    if (this.editing) {
-      const id = this.editing.id;
-      const updated: Company = { id, ...this.formData };
-      this.companies = this.companies.map(c => c.id === id ? updated : c);
-    } else {
-      const newC: Company = { id: Date.now().toString(), ...this.formData };
-      this.companies = [newC, ...this.companies];
+    if (!this.validate()) {
+      alert('Por favor corrige los errores en el formulario');
+      return;
     }
-    this.closeForm();
+
+    if (this.editing) {
+      const dto: ActualizarEmpresaDto = {
+        IdUsuario: this.formData.idUsuario,
+        Nombre: this.formData.nombre.trim(),
+        Ruc: this.formData.ruc.trim(),
+        Direccion: this.formData.direccion.trim() || '',
+        Email: this.formData.correo.trim() || '',
+        Telefono: this.formData.telefono.trim() || '',
+        TipoEmpresa: this.formData.tipoEmpresa.trim() || ''
+      };
+
+      console.log('📝 Actualizando empresa ID:', this.editing.id);
+      console.log('📦 DTO:', dto);
+
+      this.companiesService.actualizarEmpresa(this.editing.id, dto).subscribe({
+        next: (response) => {
+          console.log('✅ Respuesta:', response);
+          if (response.exito) {
+            alert('✅ Empresa actualizada correctamente');
+            this.cargarEmpresas();
+            this.closeForm();
+          } else {
+            alert('❌ ' + (response.mensaje || 'Error al actualizar'));
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error completo:', error);
+          let errorMsg = 'Error al actualizar empresa';
+          if (error.error?.mensaje) {
+            errorMsg = error.error.mensaje;
+          } else if (error.error?.errores) {
+            errorMsg = error.error.errores.join(', ');
+          } else if (error.message) {
+            errorMsg = error.message;
+          }
+          alert('❌ ' + errorMsg);
+        }
+      });
+    } else {
+      const dto: CrearEmpresaDto = {
+        IdUsuario: this.formData.idUsuario,
+        Nombre: this.formData.nombre.trim(),
+        Ruc: this.formData.ruc.trim(),
+        Direccion: this.formData.direccion.trim() || '',
+        Email: this.formData.correo.trim() || '',
+        Telefono: this.formData.telefono.trim() || '',
+        TipoEmpresa: this.formData.tipoEmpresa.trim() || ''
+      };
+
+      console.log('➕ Creando empresa');
+      console.log('📦 DTO:', dto);
+
+      this.companiesService.crearEmpresa(dto).subscribe({
+        next: (response) => {
+          console.log('✅ Respuesta:', response);
+          if (response.exito) {
+            alert('✅ Empresa creada correctamente');
+            this.cargarEmpresas();
+            this.closeForm();
+          } else {
+            alert('❌ ' + (response.mensaje || 'Error al crear'));
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error completo:', error);
+          let errorMsg = 'Error al crear empresa';
+          if (error.error?.mensaje) {
+            errorMsg = error.error.mensaje;
+          } else if (error.error?.errores) {
+            errorMsg = error.error.errores.join(', ');
+          } else if (error.message) {
+            errorMsg = error.message;
+          }
+          alert('❌ ' + errorMsg);
+        }
+      });
+    }
   }
 }

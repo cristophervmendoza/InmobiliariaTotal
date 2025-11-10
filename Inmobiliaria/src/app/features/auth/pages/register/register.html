@@ -10,64 +10,169 @@
       </div>
     </div>
 
-    <form class="auth-form" novalidate>
+    <!-- Alertas de éxito/error -->
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <span-lucide name="alert-circle" size="20"></span-lucide>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div class="alert alert-success" *ngIf="successMessage">
+      <span-lucide name="check-circle" size="20"></span-lucide>
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
       <!-- Nombre -->
       <label class="field">
-        <span class="field-label">Nombre completo</span>
-        <div class="field-control">
+        <span class="field-label">
+          Nombre completo
+          <span class="required">*</span>
+        </span>
+        <div class="field-control" [class.error-border]="f['nombre'].invalid && f['nombre'].touched">
           <span-lucide name="user" size="18" class="field-icon"></span-lucide>
-          <input type="text" placeholder="Tu nombre y apellido" required />
+          <input type="text"
+                 formControlName="nombre"
+                 placeholder="Ej: Juan Pérez García"
+                 maxlength="100" />
         </div>
+        <span class="field-hint" *ngIf="!f['nombre'].touched">Mínimo 3 caracteres</span>
+        <span class="error" *ngIf="f['nombre'].invalid && f['nombre'].touched">
+          {{ getErrorMessage('nombre') }}
+        </span>
+      </label>
+
+      <!-- DNI -->
+      <label class="field">
+        <span class="field-label">
+          DNI
+          <span class="required">*</span>
+        </span>
+        <div class="field-control" [class.error-border]="f['dni'].invalid && f['dni'].touched">
+          <span-lucide name="id-card" size="18" class="field-icon"></span-lucide>
+          <input type="text"
+                 formControlName="dni"
+                 placeholder="Ej: 12345678"
+                 inputmode="numeric"
+                 maxlength="8" />
+        </div>
+        <span class="field-hint" *ngIf="!f['dni'].touched">8 dígitos numéricos</span>
+        <span class="error" *ngIf="f['dni'].invalid && f['dni'].touched">
+          {{ getErrorMessage('dni') }}
+        </span>
+      </label>
+
+      <!-- Teléfono Perú -->
+      <label class="field">
+        <span class="field-label">
+          Teléfono
+          <span class="required">*</span>
+        </span>
+        <div class="field-control" [class.error-border]="f['telefono'].invalid && f['telefono'].touched">
+          <span-lucide name="phone" size="18" class="field-icon"></span-lucide>
+          <input type="tel"
+                 formControlName="telefono"
+                 placeholder="Ej: 987654321"
+                 inputmode="tel"
+                 maxlength="9" />
+        </div>
+        <span class="field-hint" *ngIf="!f['telefono'].touched">9 dígitos, inicia con 9</span>
+        <span class="error" *ngIf="f['telefono'].invalid && f['telefono'].touched">
+          {{ getErrorMessage('telefono') }}
+        </span>
       </label>
 
       <!-- Email -->
       <label class="field">
-        <span class="field-label">Correo electrónico</span>
-        <div class="field-control">
+        <span class="field-label">
+          Correo electrónico
+          <span class="required">*</span>
+        </span>
+        <div class="field-control" [class.error-border]="f['email'].invalid && f['email'].touched">
           <span-lucide name="mail" size="18" class="field-icon"></span-lucide>
-          <input type="email" placeholder="tunombre@dominio.com" required />
+          <input type="email"
+                 formControlName="email"
+                 placeholder="Ej: usuario@correo.com" />
         </div>
+        <span class="field-hint" *ngIf="!f['email'].touched">Formato: usuario@dominio.com</span>
+        <span class="error" *ngIf="f['email'].invalid && f['email'].touched">
+          {{ getErrorMessage('email') }}
+        </span>
       </label>
 
       <!-- Password -->
       <label class="field">
-        <span class="field-label">Contraseña</span>
-        <div class="field-control">
+        <span class="field-label">
+          Contraseña
+          <span class="required">*</span>
+        </span>
+        <div class="field-control" [class.error-border]="f['password'].invalid && f['password'].touched">
           <span-lucide name="lock" size="18" class="field-icon"></span-lucide>
-          <input id="reg-pass" [type]="regPwdVisible ? 'text' : 'password'" placeholder="********" required />
-          <button type="button" class="field-action" (click)="regPwdVisible = !regPwdVisible">
-            <span-lucide name="eye" size="18"></span-lucide>
+          <input [type]="regPwdVisible ? 'text' : 'password'"
+                 formControlName="password"
+                 placeholder="Crea una contraseña segura" />
+          <button type="button"
+                  class="field-action"
+                  (click)="regPwdVisible = !regPwdVisible"
+                  aria-label="Mostrar/Ocultar contraseña">
+            <span-lucide [name]="regPwdVisible ? 'eye-off' : 'eye'" size="18"></span-lucide>
           </button>
         </div>
+        <span class="field-hint" *ngIf="!f['password'].touched">
+          Mínimo 8 caracteres: mayúscula, minúscula, número y símbolo
+        </span>
+        <span class="error" *ngIf="f['password'].invalid && f['password'].touched">
+          {{ getErrorMessage('password') }}
+        </span>
       </label>
 
       <!-- Confirm Password -->
       <label class="field">
-        <span class="field-label">Confirmar contraseña</span>
-        <div class="field-control">
+        <span class="field-label">
+          Confirmar contraseña
+          <span class="required">*</span>
+        </span>
+        <div class="field-control" [class.error-border]="(form.errors?.['notMatch'] && f['confirm'].touched) || (f['confirm'].invalid && f['confirm'].touched)">
           <span-lucide name="lock" size="18" class="field-icon"></span-lucide>
-          <input id="reg-pass2" [type]="regPwd2Visible ? 'text' : 'password'" placeholder="********" required />
-          <button type="button" class="field-action" (click)="regPwd2Visible = !regPwd2Visible">
-            <span-lucide name="eye" size="18"></span-lucide>
+          <input [type]="regPwd2Visible ? 'text' : 'password'"
+                 formControlName="confirm"
+                 placeholder="Repite tu contraseña" />
+          <button type="button"
+                  class="field-action"
+                  (click)="regPwd2Visible = !regPwd2Visible"
+                  aria-label="Mostrar/Ocultar contraseña">
+            <span-lucide [name]="regPwd2Visible ? 'eye-off' : 'eye'" size="18"></span-lucide>
           </button>
         </div>
+        <span class="field-hint" *ngIf="!f['confirm'].touched">Debe coincidir con la contraseña</span>
+        <span class="error" *ngIf="(form.errors?.['notMatch'] && f['confirm'].touched) || (f['confirm'].invalid && f['confirm'].touched)">
+          {{ getErrorMessage('confirm') }}
+        </span>
       </label>
 
-      <!-- Términos -->
-      <label class="check">
-        <input type="checkbox" required />
-        <span>Acepto los términos y condiciones</span>
+      <!-- Términos y condiciones -->
+      <label class="check" [class.check-error]="f['terminos'].invalid && f['terminos'].touched">
+        <input type="checkbox" formControlName="terminos" />
+        <span>
+          Acepto los <a href="#" class="link-inline">términos y condiciones</a>
+          <span class="required">*</span>
+        </span>
       </label>
 
-      <!-- Submit -->
-      <button type="submit" class="auth-submit">
-        <span-lucide name="log-in" size="18"></span-lucide>
-        <span>Crear cuenta</span>
+      <!-- Botón de envío -->
+      <button type="submit"
+              class="auth-submit"
+              [disabled]="isSubmitting"
+              [class.loading]="isSubmitting">
+        <span-lucide *ngIf="!isSubmitting" name="user-plus" size="18"></span-lucide>
+        <span-lucide *ngIf="isSubmitting" name="loader-2" size="18" class="spin"></span-lucide>
+        <span>{{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}</span>
       </button>
     </form>
 
     <div class="auth-row center mt">
-      <a class="link" routerLink="/auth/login">¿Ya tienes cuenta? Iniciar sesión</a>
+      <span class="text-muted">¿Ya tienes cuenta?</span>
+      <a class="link" routerLink="/auth/login">Iniciar sesión</a>
     </div>
   </div>
 </section>

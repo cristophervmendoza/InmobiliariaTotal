@@ -88,25 +88,13 @@ import {
   Plus,
   Edit2,
 
-  // Agregados requeridos por blockedaccounts
+  // Blockedaccounts
   Shield,
   Mail,
   CreditCard,
   Unlock,
   AlertTriangle,
-  X,
-
-  // NUEVO: Iconos para Testimonials (carga inmediata)
-  Inbox,       // Tab Recepción
-  Send,        // Botón enviar formulario
-  Check,       // Aprobar/checkmarks
-  Upload,      // Subir archivos
-  Play,        // Videos
-  PlayCircle,  // Preview de video
-  UserX,       // Empty state usuarios
-  Edit,        // Botón editar
-  Info,        // Info box
-  Home as HomeIcon  // Si necesitas más variantes
+  X
 } from 'lucide-angular';
 
 @NgModule({
@@ -192,23 +180,12 @@ import {
       Edit2,
 
       // Requeridos por blockedaccounts
-      Shield,
-      Mail,
-      CreditCard,
-      Unlock,
-      AlertTriangle,
-      X,
-
-      // NUEVO: Iconos para Testimonials (carga inmediata)
-      Inbox,
-      Send,
-      Check,
-      Upload,
-      Play,
-      PlayCircle,
-      UserX,
-      Edit,
-      Info
+      Shield,         // estadísticas y tarjeta
+      Mail,           // email
+      CreditCard,     // DNI
+      Unlock,         // botón desbloquear
+      AlertTriangle,  // advertencia modal
+      X               // cerrar modal
     })
   ],
   exports: [Dashboard],

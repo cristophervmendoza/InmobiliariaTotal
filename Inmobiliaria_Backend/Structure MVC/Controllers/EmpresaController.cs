@@ -43,19 +43,6 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 ActualizadoAt = DateTime.Now
             };
 
-            // Validar con IValidatableObject
-            var validationContext = new ValidationContext(empresa);
-            var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(empresa, validationContext, validationResults, true))
-            {
-                return BadRequest(new
-                {
-                    exito = false,
-                    mensaje = "Validación fallida",
-                    errores = validationResults.Select(r => r.ErrorMessage)
-                });
-            }
-
             var (exito, mensaje, id) = await _empresaDao.CrearEmpresaAsync(empresa);
 
             if (exito)
@@ -245,6 +232,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             });
         }
 
+
         // PUT: api/Empresa/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> ActualizarEmpresa(int id, [FromBody] EmpresaUpdateDto dto)
@@ -271,7 +259,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
                 return NotFound(new { exito = false, mensaje = "Empresa no encontrada" });
             }
 
-            // Actualizar campos
+            empresaExistente.IdUsuario = dto.IdUsuario; 
             empresaExistente.Nombre = dto.Nombre;
             empresaExistente.Ruc = dto.Ruc;
             empresaExistente.Direccion = dto.Direccion ?? string.Empty;
@@ -279,19 +267,6 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
             empresaExistente.Telefono = dto.Telefono ?? string.Empty;
             empresaExistente.TipoEmpresa = dto.TipoEmpresa ?? string.Empty;
             empresaExistente.ActualizadoAt = DateTime.Now;
-
-            // Validar
-            var validationContext = new ValidationContext(empresaExistente);
-            var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(empresaExistente, validationContext, validationResults, true))
-            {
-                return BadRequest(new
-                {
-                    exito = false,
-                    mensaje = "Validación fallida",
-                    errores = validationResults.Select(r => r.ErrorMessage)
-                });
-            }
 
             var (exito, mensaje) = await _empresaDao.ActualizarEmpresaAsync(empresaExistente);
 
@@ -323,7 +298,7 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         }
     }
 
-    // DTOs para las peticiones
+    // ✅ DTOs CORREGIDOS - Solo valida formato básico, sin dígito verificador
     public class EmpresaCreateDto
     {
         [Required(ErrorMessage = "El ID de usuario es obligatorio")]
@@ -336,8 +311,8 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         public string Nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El RUC es obligatorio")]
-        [StringLength(11, MinimumLength = 11, ErrorMessage = "El RUC debe tener exactamente 11 caracteres")]
-        [RegularExpression(@"^(10|15|17|20)\d{9}$", ErrorMessage = "El RUC debe iniciar con 10, 15, 17 o 20 y contener 11 dígitos")]
+        [StringLength(11, MinimumLength = 11, ErrorMessage = "El RUC debe tener exactamente 11 dígitos")]
+        [RegularExpression(@"^(10|15|17|20)\d{9}$", ErrorMessage = "El RUC debe empezar con 10, 15, 17 o 20 y tener 11 dígitos")]
         public string Ruc { get; set; } = string.Empty;
 
         [StringLength(500, ErrorMessage = "La dirección no puede exceder los 500 caracteres")]
@@ -349,8 +324,8 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         [RegularExpression(@"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "Formato de email inválido")]
         public string? Email { get; set; }
 
-        [StringLength(9, MinimumLength = 9, ErrorMessage = "El teléfono debe tener exactamente 9 caracteres")]
-        [RegularExpression(@"^9\d{8}$", ErrorMessage = "El teléfono debe iniciar con 9 y contener solo dígitos")]
+        [StringLength(9, MinimumLength = 9, ErrorMessage = "El teléfono debe tener exactamente 9 dígitos")]
+        [RegularExpression(@"^9\d{8}$", ErrorMessage = "El teléfono debe empezar con 9 y tener 9 dígitos")]
         public string? Telefono { get; set; }
 
         [StringLength(200, MinimumLength = 3, ErrorMessage = "El tipo de empresa debe tener entre 3 y 200 caracteres")]
@@ -360,14 +335,18 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
 
     public class EmpresaUpdateDto
     {
+        [Required(ErrorMessage = "El ID de usuario es obligatorio")]
+        [Range(1, int.MaxValue, ErrorMessage = "El ID de usuario debe ser mayor a 0")]
+        public int IdUsuario { get; set; }
+
         [Required(ErrorMessage = "El nombre de la empresa es obligatorio")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "El nombre debe tener entre 2 y 100 caracteres")]
         [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\.\,\-&]+$", ErrorMessage = "El nombre contiene caracteres no permitidos")]
         public string Nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El RUC es obligatorio")]
-        [StringLength(11, MinimumLength = 11, ErrorMessage = "El RUC debe tener exactamente 11 caracteres")]
-        [RegularExpression(@"^(10|15|17|20)\d{9}$", ErrorMessage = "El RUC debe iniciar con 10, 15, 17 o 20")]
+        [StringLength(11, MinimumLength = 11, ErrorMessage = "El RUC debe tener exactamente 11 dígitos")]
+        [RegularExpression(@"^(10|15|17|20)\d{9}$", ErrorMessage = "El RUC debe empezar con 10, 15, 17 o 20 y tener 11 dígitos")]
         public string Ruc { get; set; } = string.Empty;
 
         [StringLength(500, ErrorMessage = "La dirección no puede exceder los 500 caracteres")]
@@ -379,12 +358,13 @@ namespace backend_csharpcd_inmo.Structure_MVC.Controllers
         [RegularExpression(@"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "Formato de email inválido")]
         public string? Email { get; set; }
 
-        [StringLength(9, MinimumLength = 9, ErrorMessage = "El teléfono debe tener exactamente 9 caracteres")]
-        [RegularExpression(@"^9\d{8}$", ErrorMessage = "El teléfono debe iniciar con 9")]
+        [StringLength(9, MinimumLength = 9, ErrorMessage = "El teléfono debe tener exactamente 9 dígitos")]
+        [RegularExpression(@"^9\d{8}$", ErrorMessage = "El teléfono debe empezar con 9 y tener 9 dígitos")]
         public string? Telefono { get; set; }
 
         [StringLength(200, MinimumLength = 3, ErrorMessage = "El tipo de empresa debe tener entre 3 y 200 caracteres")]
         [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\,\-]+$", ErrorMessage = "El tipo contiene caracteres no permitidos")]
         public string? TipoEmpresa { get; set; }
     }
+
 }

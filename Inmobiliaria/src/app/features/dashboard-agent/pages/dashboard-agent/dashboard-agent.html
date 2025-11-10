@@ -1,1 +1,53 @@
-<p>dashboard-agent works!</p>
+<div class="dashboard-container">
+  <!-- ENCABEZADO -->
+  <div class="header-card">
+    <div class="header-content">
+      <div>
+        <h2>Panel del Agente</h2>
+        <p>Bienvenido, aquí puedes gestionar tus propiedades, clientes y actividades recientes.</p>
+      </div>
+      <button class="btn-refresh">⟳ Actualizar</button>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="summary-grid">
+    <div class="summary-card" *ngFor="let item of metrics">
+      <div class="icon" [ngClass]="item.color">{{ item.icon }}</div>
+      <div>
+        <h3>{{ item.value }}</h3>
+        <p>{{ item.label }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVIDAD Y CITAS -->
+  <div class="activity-grid">
+    <div class="activity-card">
+      <h4>📈 Actividad Reciente</h4>
+      <div class="placeholder" *ngIf="!recentActivity.length">
+        Próximamente verás aquí tu actividad reciente.
+      </div>
+      <ul *ngIf="recentActivity.length">
+        <li *ngFor="let activity of recentActivity">{{ activity }}</li>
+      </ul>
+    </div>
+
+    <div class="activity-card">
+      <h4>📆 Próximas Citas</h4>
+      <div class="placeholder" *ngIf="!upcomingMeetings.length">
+        Próximamente verás aquí tus próximas citas programadas.
+      </div>
+      <ul *ngIf="upcomingMeetings.length">
+        <li *ngFor="let meeting of upcomingMeetings">{{ meeting }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ALERTA -->
+  <div class="alert-card" *ngIf="unreadMessages > 0">
+    <span class="icon-alert">🔔</span>
+    <span>Tienes <strong>{{ unreadMessages }}</strong> mensajes nuevos de clientes pendientes de leer.</span>
+    <a href="#" class="alert-link">Ver mensajes</a>
+  </div>
+</div>

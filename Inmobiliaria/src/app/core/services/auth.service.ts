@@ -1,70 +1,114 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, tap, Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { ApiService } from './api.service';
 
 export type UserRole = 'admin' | 'agent' | 'client';
 
-export type UserRecord = {
+export interface LoginDto {
   email: string;
   password: string;
-  role: UserRole;
-  name: string;
-};
+}
+
+export interface AuthResponse {
+  exito: boolean;
+  mensaje?: string;
+  usuario?: UserSession;
+}
+
+// ✅ Actualizada para coincidir con la respuesta de tu API
+export interface UserSession {
+  idUsuario: number;
+  nombre: string;           // "Beba"
+  email: string;            // "user@example.com"
+  dni: string;              // "13123131"
+  telefono: string;         // "960423875"
+  nombreCorto: string;      // "Beba"
+  iniciales: string;        // "BE"
+  idEstadoUsuario: number;  // 1
+  rol: UserRole;            // "admin"
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly KEY = 'auth_session';
+  private api = inject(ApiService);
+  private router = inject(Router);
 
-  // Usuarios de ejemplo
-  private users: UserRecord[] = [
-    { email: 'admin@idealhome.pe', password: 'Admin#123', role: 'admin', name: 'Administrador' },
-    { email: 'agent@idealhome.pe', password: 'Agent#123', role: 'agent', name: 'Agente' },
-    { email: 'client@idealhome.pe', password: 'Client#123', role: 'client', name: 'Cliente' },
-  ];
+  private currentSession$ = new BehaviorSubject<UserSession | null>(null);
+  session$ = this.currentSession$.asObservable();
 
-  constructor(private router: Router) { }
-
-  login(email: string, password: string) {
-    const found = this.users.find(u => u.email === email && u.password === password);
-    if (!found) return null;
-
-    const session = {
-      email: found.email,
-      role: found.role,
-      name: found.name,
-      token: this.generateToken(found.email, found.role)
-    };
-    localStorage.setItem(this.KEY, JSON.stringify(session));
-    return session;
-  }
-
-  logout() {
-    localStorage.removeItem(this.KEY);
-    this.router.navigate(['/login']);
-  }
-
-  getSession(): { email: string; role: UserRole; name: string; token: string } | null {
-    const raw = localStorage.getItem(this.KEY);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return null;
+  constructor() {
+    const cached = localStorage.getItem(this.KEY);
+    if (cached) {
+      try {
+        const session = JSON.parse(cached);
+        // ✅ Normalizar rol al cargar desde cache
+        if (session?.rol) {
+          session.rol = this.normalizeRole(session.rol);
+        }
+        this.currentSession$.next(session);
+      } catch {
+        localStorage.removeItem(this.KEY);
+      }
     }
   }
 
+  login(email: string, password: string): Observable<AuthResponse> {
+    const dto: LoginDto = { email, password };
+    return this.api.post<AuthResponse>('/api/Usuario/login', dto).pipe(
+      tap(res => {
+        if (res.exito && res.usuario) {
+          // ✅ Normalizar rol a minúsculas
+          res.usuario.rol = this.normalizeRole(res.usuario.rol);
+
+          console.log('✅ Login exitoso:', res.usuario);
+
+          this.currentSession$.next(res.usuario);
+          localStorage.setItem(this.KEY, JSON.stringify(res.usuario));
+        }
+      })
+    );
+  }
+
+  logout(): void {
+    console.log('🚪 Cerrando sesión');
+    this.currentSession$.next(null);
+    localStorage.removeItem(this.KEY);
+    this.router.navigate(['/auth/login']);
+  }
+
+  getSession(): UserSession | null {
+    return this.currentSession$.value;
+  }
+
   isAuthenticated(): boolean {
-    return !!this.getSession();
+    return !!this.currentSession$.value;
   }
 
   hasRole(role: UserRole | UserRole[]): boolean {
-    const s = this.getSession();
-    if (!s) return false;
-    if (Array.isArray(role)) return role.includes(s.role);
-    return s.role === role;
+    const session = this.getSession();
+    if (!session) return false;
+    if (Array.isArray(role)) return role.includes(session.rol);
+    return session.rol === role;
   }
 
-  private generateToken(email: string, role: UserRole) {
-    // token de demostración
-    return btoa(`${email}|${role}|${Date.now()}`);
+  get user(): UserSession | null {
+    return this.currentSession$.value;
+  }
+
+  get role(): UserRole | null {
+    return this.currentSession$.value?.rol ?? null;
+  }
+
+  // ✅ Helper para normalizar roles
+  private normalizeRole(rol: any): UserRole {
+    if (typeof rol === 'string') {
+      const normalized = rol.toLowerCase().trim();
+      if (normalized === 'admin' || normalized === 'administrador') return 'admin';
+      if (normalized === 'agent' || normalized === 'agente' || normalized === 'agenteinmobiliario') return 'agent';
+      if (normalized === 'client' || normalized === 'cliente') return 'client';
+    }
+    return rol;
   }
 }

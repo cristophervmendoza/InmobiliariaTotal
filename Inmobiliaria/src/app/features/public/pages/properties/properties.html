@@ -42,10 +42,14 @@
           <select [(ngModel)]="selectedCurrency"
                   (ngModelChange)="applyFilters()"
                   class="filterSelect">
+            <option value="">Todas</option>  <!-- ✅ Opción por defecto -->
             <option value="PEN">Soles (S/)</option>
             <option value="USD">Dólares ($)</option>
+            <option value="EUR">Euros (€)</option>
           </select>
+          <a href="properties.html">properties.html</a>
         </div>
+
 
         <div class="filterGroup">
           <label class="filterLabel">Precio Mínimo</label>
