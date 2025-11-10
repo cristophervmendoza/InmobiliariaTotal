@@ -335,7 +335,6 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
         }
 
         // Actualizar empresa
-        // ✅ CORREGIDO: Incluir IdUsuario en el UPDATE
         public async Task<(bool exito, string mensaje)> ActualizarEmpresaAsync(Empresa empresa)
         {
             var connectionResult = db_single.GetConnection();
@@ -345,7 +344,6 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
             }
 
             using var connection = connectionResult.Conexion;
-
             try
             {
                 // Verificar si el RUC existe en otra empresa
@@ -355,22 +353,17 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                     return (false, "El RUC ya está registrado en otra empresa");
                 }
 
-                // ✅ AGREGAR idUsuario = @idUsuario
                 string query = @"UPDATE empresa SET 
-            idUsuario = @idUsuario,
-            nombre = @nombre,
-            ruc = @ruc,
-            direccion = @direccion,
-            email = @email,
-            telefono = @telefono,
-            tipoEmpresa = @tipoEmpresa,
-            actualizadoAt = @actualizadoAt
-            WHERE idEmpresa = @id";
+                    nombre = @nombre,
+                    ruc = @ruc,
+                    direccion = @direccion,
+                    email = @email,
+                    telefono = @telefono,
+                    tipoEmpresa = @tipoEmpresa,
+                    actualizadoAt = @actualizadoAt
+                    WHERE idEmpresa = @id";
 
                 using var cmd = new MySqlCommand(query, connection);
-
-                // ✅ AGREGAR parámetro
-                cmd.Parameters.AddWithValue("@idUsuario", empresa.IdUsuario);
                 cmd.Parameters.AddWithValue("@id", empresa.IdEmpresa);
                 cmd.Parameters.AddWithValue("@nombre", empresa.Nombre);
                 cmd.Parameters.AddWithValue("@ruc", empresa.Ruc);
@@ -394,7 +387,6 @@ namespace backend_csharpcd_inmo.Structure_MVC.DAO
                 return (false, $"Error al actualizar empresa: {ex.Message}");
             }
         }
-
 
         // Eliminar empresa
         public async Task<(bool exito, string mensaje)> EliminarEmpresaAsync(int id)
