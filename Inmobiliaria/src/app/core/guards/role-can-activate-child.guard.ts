@@ -1,17 +1,19 @@
-// src/app/core/guards/role-can-activate-child.guard.ts
 import { inject } from '@angular/core';
 import { CanActivateChildFn, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthService } from '../services/auth.service'; // ajusta la ruta si tu servicio está en core/services
+import { LoginService } from '../services/login.service';
 
 export const roleCanActivateChildGuard: CanActivateChildFn =
   (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
-    const auth = inject(AuthService);
+    const auth = inject(LoginService);
     const router = inject(Router);
 
     const allowed = (route.parent?.data?.['roles'] ?? route.data?.['roles'] ?? []) as string[];
+    const isAuth = auth.isAuthenticated;
+    const role = auth.role?.toLowerCase() ?? null;
 
-    if (auth.isAuthenticated() && (allowed.length === 0 || auth.hasRole(allowed as any))) {
+    if (isAuth && (allowed.length === 0 || (role && allowed.map(r => r.toLowerCase()).includes(role)))) {
       return true;
     }
     return router.createUrlTree(['/auth/login'], { queryParams: { redirect: state.url } });
   };
+

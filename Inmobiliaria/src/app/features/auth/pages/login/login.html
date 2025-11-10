@@ -18,9 +18,7 @@
         <label class="field-label">Correo Electrónico</label>
         <div class="field-control" [class.error-border]="f['email'].invalid && f['email'].touched">
           <span-lucide name="mail" size="18" class="field-icon"></span-lucide>
-          <input type="email"
-                 formControlName="email"
-                 placeholder="tu@email.com"
+          <input type="email" formControlName="email" placeholder="tu@email.com"
                  autocomplete="email" />
         </div>
         <span class="error" *ngIf="f['email'].invalid && f['email'].touched">
@@ -37,15 +35,23 @@
                  formControlName="password"
                  placeholder="••••••••"
                  autocomplete="current-password" />
-          <button type="button"
-                  class="field-action"
-                  (click)="togglePassword()"
+          <button type="button" class="field-action" (click)="togglePassword()"
                   aria-label="Mostrar/Ocultar contraseña">
             <span-lucide [name]="passwordVisible ? 'eye-off' : 'eye'" size="18"></span-lucide>
           </button>
         </div>
         <span class="error" *ngIf="f['password'].invalid && f['password'].touched">
-          {{ f['password'].errors?.['required'] ? 'La contraseña es requerida' : 'Mínimo 6 caracteres' }}
+          {{ f['password'].errors?.['required'] ? 'La contraseña es requerida' : 'Mínimo 8 caracteres' }}
+        </span>
+      </div>
+
+      <!-- Estado captcha -->
+      <div class="auth-row center" style="margin: 8px 0;">
+        <span *ngIf="isVerifyingCaptcha" style="font-size: 13px; color:#64748b;">
+          Verificando captcha...
+        </span>
+        <span *ngIf="!isVerifyingCaptcha && captchaOk" style="font-size: 13px; color:#16a34a;">
+          Captcha verificado
         </span>
       </div>
 
@@ -65,9 +71,8 @@
       </div>
 
       <!-- Botón de envío -->
-      <button type="submit"
-              class="auth-submit"
-              [disabled]="isSubmitting || loginForm.invalid">
+      <button type="submit" class="auth-submit"
+              [disabled]="isSubmitting || isVerifyingCaptcha || loginForm.invalid">
         <span-lucide *ngIf="!isSubmitting" name="log-in" size="18"></span-lucide>
         <span>{{ isSubmitting ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
       </button>

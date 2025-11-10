@@ -1,5 +1,6 @@
 using backend_csharpcd_inmo.Structure_MVC.DAO;
 using Inmobiliaria_Backend.Services;
+using Inmobiliaria_Backend.Structure_MVC.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +11,18 @@ builder.Services.AddCors(options =>
     options.AddPolicy(DevCors, policy =>
         policy.WithOrigins(
                 "http://localhost:49707",
-                "https://localhost:49707"
+                "https://localhost:49707",
+                "http://127.0.0.1:5500",
+                "http://localhost:5500"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials() // opcional, solo si usas cookies/autenticación
     );
 });
+builder.Services.Configure<RecaptchaOptions>(builder.Configuration.GetSection("Recaptcha"));
+builder.Services.AddHttpClient<ICaptchaService, CaptchaService>();
+builder.Services.AddScoped<ICaptchaService, CaptchaService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
